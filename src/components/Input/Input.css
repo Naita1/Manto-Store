@@ -1,0 +1,32 @@
+.input-container {
+  display: flex;
+  flex-direction: column; 
+  gap: 0.5rem; 
+  width: 100%;
+  margin-bottom: 1.5rem; 
+}
+
+.input-container label {
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  margin-left: 0.5rem;
+}
+
+.manto-input {
+  width: 100%;
+  background-color: var(--card-color); 
+  color: var(--text-color); 
+  border: 1px solid transparent; 
+  border-radius: 0.5rem; 
+  padding: 1rem;
+  font-size: 1rem;
+  outline: none; 
+  transition: border-color 0.3s ease;
+}
+
+.manto-input:focus {
+  border-color: var(--primary-color); 
+}

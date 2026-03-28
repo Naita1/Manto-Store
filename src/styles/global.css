@@ -1,0 +1,16 @@
+:root {
+  --bg-color: #0B0B0B;
+  --card-color: #1F1F1F;
+  --text-color: #FFFFFF;
+  --primary-color: #E50914;
+
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
