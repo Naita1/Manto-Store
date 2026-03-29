@@ -6,6 +6,7 @@ import { ChatButton } from './components/ChatButton'
 
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
+import { ProductPage } from './pages/Product';
 
 function App() {
   return (
@@ -15,8 +16,8 @@ function App() {
         
         <Routes>
           <Route path="/" element={<HomePage />} />
-          
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/produto/:id" element={<ProductPage />} />
         </Routes>
 
         <Footer />

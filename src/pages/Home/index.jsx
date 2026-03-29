@@ -1,52 +1,61 @@
+// src/pages/Home/index.jsx
+import { useState, useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../services/firebase'; 
 import { ProductCard } from '../../components/ProductCard';
 import './Home.css';
 import banner from '../../assets/Manto.png'
 
 export function HomePage() {
-  
-  const produtosPesquisa = [
-    { id: 1, title: 'CAMISA PRINCIPAL DO BOCA JUNIORS 25/26', price: 'R$299,99' },
-    { id: 2, title: 'CAMISA I JUVENTUS 25/26', price: 'R$299,99' },
-    { id: 3, title: 'CAMISA II MILAN 25/26', price: 'R$299,99' },
-    { id: 4, title: 'CAMISA I REAL MADRID 25/26', price: 'R$349,90' },
-    { id: 5, title: 'CAMISA I BAYERN 25/26', price: 'R$299,99' },
-    { id: 6, title: 'CAMISA III ARSENAL 25/26', price: 'R$299,99' },
-  ];
+  const [produtos, setProdutos] = useState([]);
+
+  useEffect(() => {
+    async function buscarProdutos() {
+      try {
+        const produtosRef = collection(db, 'produtos');
+        const snapshot = await getDocs(produtosRef);
+        
+        const listaProdutos = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data() 
+        }));
+        setProdutos(listaProdutos);
+      } catch (error) {
+        console.error("Erro ao buscar produtos:", error);
+      }
+    }
+
+    buscarProdutos();
+  }, []);
 
   return (
     <div className="home-container">
       
-    <section
+          <section
   className="home-banner"
   style={{ 
     backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url(${banner})` 
   }}
 ></section>
 
-
       <section className="showcase-section">
-        <h2 className="showcase-title">COM BASE NA SUA PESQUISA</h2>
+        <h2 className="showcase-title">NOVIDADES DA LOJA</h2>
         <div className="product-row">
-          {produtosPesquisa.map(produto => (
-            <ProductCard 
-              key={produto.id} 
-              title={produto.title} 
-              price={produto.price} 
-            />
-          ))}
-        </div>
-      </section>
+          
+          {produtos.length === 0 ? (
+            <p style={{ color: '#FFF' }}>Carregando produtos da nuvem...</p>
+          ) : (
+            produtos.map(produto => (
+              <ProductCard 
+                key={produto.id} 
+                id={produto.id}
+                title={produto.title} 
+                price={produto.price}
+                image={produto.image[0]} 
+              />
+            ))
+          )}
 
-      <section className="showcase-section">
-        <h2 className="showcase-title">MAIS VENDIDOS</h2>
-        <div className="product-row">
-          {produtosPesquisa.map(produto => (
-            <ProductCard 
-              key={produto.id + 10} 
-              title={produto.title} 
-              price={produto.price} 
-            />
-          ))}
         </div>
       </section>
 
