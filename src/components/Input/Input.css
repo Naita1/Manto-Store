@@ -19,7 +19,7 @@
   width: 100%;
   background-color: var(--card-color); 
   color: var(--text-color); 
-  border: 1px solid transparent; 
+  border: 1px solid var(--bg-color); 
   border-radius: 0.5rem; 
   padding: 1rem;
   font-size: 1rem;

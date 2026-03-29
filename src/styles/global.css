@@ -1,16 +1,24 @@
 :root {
-  --bg-color: #0B0B0B;
-  --card-color: #1F1F1F;
-  --text-color: #FFFFFF;
-  --primary-color: #E50914;
-
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  color: var(--text-color);
-  background-color: var(--bg-color);
+  --primary-color: #B22222; 
+  --bg-color: #121212; 
+  --card-color: #1E1E1E; 
+  --text-color: #FFFFFF; 
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
 }

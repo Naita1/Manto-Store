@@ -1,23 +1,96 @@
 .header-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2.5rem 0;
+  width: 100%;
+  padding: 1.5rem 4rem;
   background-color: transparent; 
+  display: flex;
+  align-items: center;
 }
 
-.header-container h1 {
-  text-align: center;
-  font-size: 3rem;
+.header-login {
+  justify-content: center;
+}
+
+.header-home {
+  justify-content: space-between;
+  background-color: #050505; 
+  border-bottom: 1px solid #1F1F1F;
+}
+
+.logo-link {
+  text-decoration: none;
   color: var(--text-color);
-  margin: 0;
 }
 
-.header-container h1 span {
-  display: block;
-  font-size: 1rem;
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.logo-manto {
+  font-size: 2.8rem;
+  font-weight: 700;
+  font-family: 'Georgia', serif; 
+  letter-spacing: -0.05rem;
+}
+
+.logo-store {
+  font-size: 0.8rem;
   letter-spacing: 0.4rem;
-  text-transform: uppercase;
-  color: var(--text-color);
-  opacity: 0.8; 
+  margin-top: 0.2rem;
+  font-weight: 600;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  background-color: #D9D9D9; 
+  border-radius: 2rem;
+  padding: 0.3rem 0.5rem 0.3rem 1.5rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  color: #000;
+}
+
+.search-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+}
+
+.header-icons {
+  display: flex;
+  gap: 1rem;
+}
+
+.icon-circle {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: var(--primary-color);  
+  color: #FFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.icon-circle:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
 }
