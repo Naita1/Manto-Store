@@ -1,4 +1,3 @@
-// src/pages/Home/index.jsx
 import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase'; 
@@ -50,7 +49,7 @@ export function HomePage() {
                 key={produto.id} 
                 id={produto.id}
                 title={produto.title} 
-                price={produto.price}
+                price={produto.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 image={produto.image[0]} 
               />
             ))

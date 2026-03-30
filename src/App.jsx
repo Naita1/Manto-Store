@@ -7,6 +7,7 @@ import { ChatButton } from './components/ChatButton'
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
 import { ProductPage } from './pages/Product';
+import { CartPage } from './pages/Cart';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/produto/:id" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage />} /> 
         </Routes>
 
         <Footer />
