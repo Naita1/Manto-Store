@@ -8,10 +8,13 @@ import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
 import { ProductPage } from './pages/Product';
 import { CartPage } from './pages/Cart';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
     <BrowserRouter>
+    <AuthProvider>
+
       <MainLayout>
         <Header />
         
@@ -25,6 +28,7 @@ function App() {
         <Footer />
         <ChatButton />
       </MainLayout>
+    </AuthProvider>
     </BrowserRouter>
   );
 }
