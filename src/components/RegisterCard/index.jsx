@@ -1,36 +1,42 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext'; 
-import { Button } from '../Button';
+import { useAuth } from '../../contexts/UseAuth'; 
+import { useState, useRef } from 'react';
+
 import { Input } from '../Input';
+import { Button } from '../Button';
+import { Toast } from 'primereact/toast';
+
 import './RegisterCard.css';
 
-
 export function RegisterCard() {
+    const toast = useRef(null);
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     
     const { signUp } = useAuth();
+    
 
     const handleRegister = async (e) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
-            return alert("As senhas não coincidem!");
+            toast.current.show({ severity: 'warn', summary: 'Senhas Não Correspondem', detail: 'Por favor, verifique as senhas digitadas.', life: 3000 });
+            return;
         }
-
         try {
             await signUp(email, password, name);
-            alert("Conta criada com sucesso! Agora pode adicionar produtos ao carrinho.");
+            toast.current.show({ severity: 'success', summary: 'Cadastro Bem-Sucedido', detail: 'Bem-vindo à Manto Store!', life: 3000 });
         } catch (error) {
             console.error(error);
-            alert("Erro ao cadastrar: " + error.message);
+            toast.current.show({ severity: 'error', summary: 'Erro de Cadastro', detail: error.message, life: 3000 });
         }
     };
 
     return (
         <div className='card-container'>
+            <Toast ref={toast}/>
             <h2 className='card-title'>Primeiro Acesso</h2>
             <form className='card-form' onSubmit={handleRegister}>
                 <Input
