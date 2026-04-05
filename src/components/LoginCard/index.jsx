@@ -7,6 +7,15 @@ import { Input } from '../Input';
 
 import './LoginCard.css';
 
+const loginErrorMessages = {
+  'auth/invalid-credential': 'E-mail ou senha incorretos.',
+  'auth/user-not-found': 'Usuário não encontrado. Verifique o e-mail.',
+  'auth/wrong-password': 'Senha incorreta.',
+  'auth/invalid-email': 'E-mail inválido.',
+  'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.',
+  'auth/network-request-failed': 'Erro de conexão com o servidor.'
+};
+
 export function LoginCard() {
 
   const toast = useRef(null);
@@ -14,26 +23,37 @@ export function LoginCard() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const {login} = useAuth();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    try{
+    try {
       await login(email, password);
-      toast.current.show({ severity: 'success', summary: 'Login Bem-Sucedido', detail: 'Bem-vindo de volta!', life: 3000 });
+      
+      toast.current.show({ 
+        severity: 'success', 
+        summary: 'Login Bem-Sucedido', 
+        detail: 'Bem-vindo de volta!', 
+        life: 3000 
+      });
+      
       setEmail('');
       setPassword('');
+    } 
+    catch (error) {
+      console.error("Erro original:", error.code);
+
+      const friendlyMessage = loginErrorMessages[error.code] || 'Ocorreu um erro inesperado. Tente novamente.';
+
+      toast.current.show({ 
+        severity: 'error', 
+        summary: 'Erro de Acesso', 
+        detail: friendlyMessage, 
+        life: 4000 
+      });
     }
-    catch(error){
-      console.error(error);
-      if(error.code === 'auth/user-not-found'){
-        toast.current.show({ severity: 'warn', summary: 'Usuário Não Encontrado', detail: 'Verifique seu e-mail ou cadastre-se.', life: 3000 });
-      }else{
-        toast.current.show({ severity: 'error', summary: 'Erro de Login', detail: error.message, life: 3000 });
-      }
-    }
-  }
+  };
 
   return (
     <div className="card-container">
@@ -49,6 +69,7 @@ export function LoginCard() {
           placeholder="exemplo@email.com" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         
         <Input 
@@ -58,6 +79,7 @@ export function LoginCard() {
           placeholder="Sua senha" 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         
         <a href="#" className="forgot-password">Esqueci minha senha</a>
