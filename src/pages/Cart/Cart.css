@@ -204,3 +204,40 @@
 .btn-checkout:hover {
   filter: brightness(0.8);
 }
+
+.empty-cart-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.03); 
+  border: 1px dashed #444; 
+  border-radius: 15px;
+  color: #888;
+  font-size: 1.1rem;
+  letter-spacing: 0.05rem;
+  margin: 20px 0;
+}
+
+.empty-cart-msg::before {
+  content: '🛒'; 
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.disabled-box {
+  opacity: 0.4;
+  filter: grayscale(1);
+  pointer-events: none; 
+  border-style: dashed !important; 
+}
+
+.btn-checkout:disabled {
+  background-color: #333;
+  color: #666;
+  cursor: not-allowed;
+  filter: none;
+}

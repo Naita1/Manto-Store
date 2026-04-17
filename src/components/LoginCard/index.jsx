@@ -5,6 +5,8 @@ import { Toast } from 'primereact/toast';
 import { Button } from '../Button';
 import { Input } from '../Input';
 
+import { Link } from 'react-router-dom';
+
 import './LoginCard.css';
 
 const loginErrorMessages = {
@@ -86,6 +88,11 @@ export function LoginCard() {
         
         <Button type="submit">Entrar</Button>
       </form>
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <Link to="/register" className="login-link">
+            Primeiro Acesso
+          </Link>
+        </div>
     </div>
-  );
+  );6
 }

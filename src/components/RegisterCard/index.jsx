@@ -1,5 +1,6 @@
 import { useAuth } from '../../contexts/UseAuth'; 
 import { useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Input } from '../Input';
 import { Button } from '../Button';
@@ -16,6 +17,7 @@ const registerErrorMessages = {
 
 export function RegisterCard() {
   const toast = useRef(null);
+  const navigate = useNavigate(); 
   const { signUp } = useAuth();
 
   const [name, setName] = useState('');
@@ -42,19 +44,21 @@ export function RegisterCard() {
         severity: 'success', 
         summary: 'Conta Criada!', 
         detail: 'Bem-vindo à Manto Store!', 
-        life: 3000 
+        life: 2000 
       });
       
       setName('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
-    } 
-    catch (error) {
-      console.error("Erro no cadastro:", error.code);
-      
-      const friendlyMessage = registerErrorMessages[error.code] || 'Erro ao criar conta. Tente novamente.';
 
+      setTimeout(() => {
+        navigate('/login'); 
+      }, 2000);
+
+    } catch (error) {
+      console.error("Erro no cadastro:", error.code);
+      const friendlyMessage = registerErrorMessages[error.code] || 'Erro ao criar conta. Tente novamente.';
       toast.current.show({ 
         severity: 'error', 
         summary: 'Erro no Registro', 
@@ -111,6 +115,12 @@ export function RegisterCard() {
 
         <Button type="submit">Cadastrar</Button>
       </form>
+      
+      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        <Link to="/login" className="login-link">
+          Já tenho cadastro
+        </Link>
+      </div>
     </div>
   );
 }
