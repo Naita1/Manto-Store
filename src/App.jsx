@@ -10,6 +10,7 @@ import { RegisterPage } from './pages/Register';
 import { ProductPage } from './pages/Product';
 import { CartPage } from './pages/Cart';
 import { AuthProvider } from './contexts/AuthContext';
+import { ProfilePage } from './pages/Profile';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} /> 
           <Route path="/produto/:id" element={<ProductPage />} />
           <Route path="/cart" element={<CartPage />} /> 
+          <Route path='/profile' element={<ProfilePage/>} />
         </Routes>
 
         <Footer />

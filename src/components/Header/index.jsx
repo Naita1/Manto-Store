@@ -1,8 +1,11 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Header.css';
+import { useAuth } from '../../contexts/AuthContext';
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate(); 
+  const { user } = useAuth();
   
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
@@ -12,6 +15,14 @@ export function Header() {
       <span className="logo-store">STORE</span>
     </div>
   );
+
+  const handleUserClick = () => {
+    if (user) {
+      navigate('/profile'); 
+    } else {
+      navigate('/login'); 
+    }
+  };
 
   if (isAuthPage) {
     return (
@@ -41,12 +52,16 @@ export function Header() {
       </div>
 
       <div className="header-icons">
-        <Link to="/login" className="icon-circle" aria-label="Login">
+        <button 
+          onClick={handleUserClick} 
+          className="icon-circle" 
+          aria-label={user ? "Perfil" : "Login"}
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
-        </Link>
+        </button>
         
         <Link to="/cart" className="icon-circle" aria-label="Carrinho">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -7,7 +7,6 @@ export function LoginPage() {
       
       <section style={{ display: 'flex', gap: '2rem', justifyContent: 'center', alignItems: 'stretch', flexWrap: 'wrap', width: '100%', maxWidth: '900px' }}>
         <LoginCard />
-        {/* <RegisterCard /> */}
       </section>
 
       <div style={{ width: '100%', maxWidth: '1000px', height: '2px', backgroundColor: '#1F1F1F', margin: '4rem 0' }}></div>

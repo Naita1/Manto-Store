@@ -111,7 +111,6 @@ export function CartPage() {
     <span>{formatCurrency(subtotal)}</span>
   </div>
   
-  {/* Adicionamos a classe 'disabled-box' se o carrinho estiver vazio */}
   <div className={`preference-box ${cartItems.length === 0 ? 'disabled-box' : ''}`}>
     <div className="box-header">PREFERÊNCIAS DE PAGAMENTO</div>
     <div className="box-content">

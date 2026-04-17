@@ -1,0 +1,101 @@
+.profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: #FFF;
+  font-family: Arial, sans-serif;
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.avatar-placeholder {
+  width: 100px;
+  height: 100px;
+  background-color: #555;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+}
+
+.profile-name {
+  font-size: 1.2rem;
+  letter-spacing: 0.1rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.btn-edit-profile {
+  background-color: #CC0000;
+  color: #FFF;
+  border: none;
+  padding: 0.4rem 1.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.profile-grid {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.info-box {
+  flex: 1;
+  border: 2px solid #555;
+  border-radius: 20px;
+  background-color: rgba(20, 20, 20, 0.8);
+  overflow: hidden;
+}
+
+.box-content-profile {
+  padding: 1.5rem;
+  font-size: 0.8rem;
+  color: #BBB;
+}
+
+.box-content-profile p {
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.settings-item {
+  background-color: #CC0000;
+  border: none;
+  color: #FFF;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.btn-logout-profile {
+  margin-top: 2rem;
+  background: transparent;
+  color: #CC0000;
+  border: 1px solid #CC0000;
+  padding: 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.btn-logout-profile:hover {
+  background-color: #CC0000;
+  color: #FFF;
+}

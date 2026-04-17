@@ -6,7 +6,6 @@ export function RegisterPage() {
     <main style={{ flex: 1, width: '100%', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       
       <section style={{ display: 'flex', gap: '2rem', justifyContent: 'center', alignItems: 'stretch', flexWrap: 'wrap', width: '100%', maxWidth: '900px' }}>
-        {/* <LoginCard /> */}
         <RegisterCard />
       </section>
 

@@ -1,10 +1,10 @@
-import { useAuth } from '../../contexts/UseAuth';
+import { useAuth } from '../../contexts/AuthContext'; 
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Toast } from 'primereact/toast';
 import { Button } from '../Button';
 import { Input } from '../Input';
-
 import { Link } from 'react-router-dom';
 
 import './LoginCard.css';
@@ -19,16 +19,18 @@ const loginErrorMessages = {
 };
 
 export function LoginCard() {
-
   const toast = useRef(null);
+  const navigate = useNavigate(); 
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       await login(email, password);
@@ -37,16 +39,17 @@ export function LoginCard() {
         severity: 'success', 
         summary: 'Login Bem-Sucedido', 
         detail: 'Bem-vindo de volta!', 
-        life: 3000 
+        life: 2000 
       });
-      
-      setEmail('');
-      setPassword('');
+
+      setTimeout(() => {
+        navigate('/'); 
+      }, 2000);
+
     } 
     catch (error) {
       console.error("Erro original:", error.code);
-
-      const friendlyMessage = loginErrorMessages[error.code] || 'Ocorreu um erro inesperado. Tente novamente.';
+      const friendlyMessage = loginErrorMessages[error.code] || 'Ocorreu um erro inesperado.';
 
       toast.current.show({ 
         severity: 'error', 
@@ -54,6 +57,8 @@ export function LoginCard() {
         detail: friendlyMessage, 
         life: 4000 
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,7 +68,6 @@ export function LoginCard() {
       <h2 className="card-title">Já sou cadastrado</h2>
       
       <form className="card-form" onSubmit={handleLogin}>
-        
         <Input 
           id="email-login" 
           label="E-mail" 
@@ -86,13 +90,16 @@ export function LoginCard() {
         
         <a href="#" className="forgot-password">Esqueci minha senha</a>
         
-        <Button type="submit">Entrar</Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Carregando...' : 'Entrar'}
+        </Button>
       </form>
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-          <Link to="/register" className="login-link">
-            Primeiro Acesso
-          </Link>
-        </div>
+
+      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        <Link to="/register" className="login-link">
+          Primeiro Acesso
+        </Link>
+      </div>
     </div>
-  );6
+  );
 }
