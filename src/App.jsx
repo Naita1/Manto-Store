@@ -12,6 +12,7 @@ import { ProductPage } from './pages/Product';
 import { CartPage } from './pages/Cart';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProfilePage } from './pages/Profile';
+import { SearchPage } from './pages/Search';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/produto/:id" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} /> 
             <Route path='/profile' element={<ProfilePage/>} />
+            <Route path="/search" element={<SearchPage />} />
           </Routes>
 
           <Footer />

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Header.css';
 import { useAuth } from '../../contexts/AuthContext';
@@ -6,6 +7,8 @@ export function Header() {
   const location = useLocation();
   const navigate = useNavigate(); 
   const { user } = useAuth();
+  
+  const [searchTerm, setSearchTerm] = useState('');
   
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
@@ -21,6 +24,14 @@ export function Header() {
       navigate('/profile'); 
     } else {
       navigate('/login'); 
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm(''); 
     }
   };
 
@@ -41,15 +52,21 @@ export function Header() {
         <Logo />
       </Link>
 
-      <div className="search-container">
-        <input type="text" className="search-input" placeholder="O que você procura?" />
-        <button className="search-button" aria-label="Buscar">
+      <form className="search-container" onSubmit={handleSearch}>
+        <input 
+          type="text" 
+          className="search-input" 
+          placeholder="O que você procura?" 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <button type="submit" className="search-button" aria-label="Buscar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </button>
-      </div>
+      </form>
 
       <div className="header-icons">
         <button 
