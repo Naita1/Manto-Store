@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/UseAuth'; 
 import { db } from '../../services/firebase'; 
 
+import toast from 'react-hot-toast';
+
 import './Product.css';
 
 export function ProductPage() {
@@ -30,18 +32,18 @@ export function ProductPage() {
 
 const handleAddToCart = async (redirect = false) => {
     if (!user) {
-      alert("Você precisa estar logado para adicionar itens ao carrinho!");
+      toast.error("Você precisa estar logado para adicionar itens ao carrinho!");
       navigate('/login');
       return;
     }
 
     if (tamanhosDisponiveis.length > 0 && !tamanhoSelecionado) {
-      alert("Por favor, selecione um tamanho antes de continuar.");
+      toast.error("Por favor, selecione um tamanho antes de continuar.");
       return;
     }
 
     if (querPersonalizar && (!nomePersonalizado || !numeroPersonalizado)) {
-      alert("Você escolheu personalizar! Por favor, preencha o Nome e o Número do seu manto.");
+      toast.error("Você escolheu personalizar! Por favor, preencha o Nome e o Número do seu manto.");
       return;
     }
 
@@ -89,12 +91,12 @@ const handleAddToCart = async (redirect = false) => {
       if (redirect) {
         navigate('/cart'); 
       } else {
-        alert("Produto adicionado ao manto-carrinho! ⚽");
+        toast.success("Produto adicionado ao manto-carrinho!");
       }
 
     } catch (error) {
       console.error("Erro ao adicionar ao carrinho:", error);
-      alert("Erro ao salvar no banco de dados.");
+      toast.error("Erro ao salvar no banco de dados.");
     }
   };
 

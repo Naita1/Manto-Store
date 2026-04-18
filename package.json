@@ -18,6 +18,7 @@
     "primereact": "^10.9.7",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.14.1",
     "use-auth": "^0.1.2"
   },

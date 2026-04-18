@@ -2,23 +2,21 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../services/firebase'; 
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { useAuth } from '../../contexts/UseAuth'; // Importando o teu contexto de autenticação
+import { useAuth } from '../../contexts/UseAuth'; 
 import './Cart.css';
 
 export function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth(); // Obtém o utilizador logado
+  const { user } = useAuth(); 
   const navigate = useNavigate();
 
-  // 1. Escuta o carrinho no Firestore em tempo real
   useEffect(() => {
     if (!user) {
       setLoading(false);
       return;
     };
 
-    // Usamos 'carrinhos' (plural) para coincidir com a lógica da ProductPage
     const cartRef = doc(db, "carrinhos", user.uid);
 
     const unsubscribe = onSnapshot(cartRef, (docSnap) => {
@@ -33,13 +31,11 @@ export function CartPage() {
     return () => unsubscribe();
   }, [user]);
 
-  // 2. Função para atualizar quantidade no Firestore
   const updateQuantity = async (productId, size, newQuantity) => {
     if (newQuantity < 1) return;
 
     const cartRef = doc(db, "carrinhos", user.uid);
     
-    // Mapeia o array atualizando apenas o item específico (pelo ID e Tamanho)
     const updatedItems = cartItems.map(item => 
       (item.productId === productId && item.size === size) 
         ? { ...item, quantity: newQuantity } 
@@ -53,7 +49,6 @@ export function CartPage() {
     }
   };
 
-  // 3. Função para remover item do carrinho
   const removeItem = async (productId, size) => {
     const cartRef = doc(db, "carrinhos", user.uid);
     const updatedItems = cartItems.filter(item => 
@@ -73,7 +68,6 @@ export function CartPage() {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  // Se não estiver logado, mostra mensagem ou redireciona
   if (!user && !loading) {
     return (
       <div className="cart-page-container">

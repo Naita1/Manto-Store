@@ -1,10 +1,11 @@
 import { useAuth } from '../../contexts/UseAuth'; 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+
 import { Link, useNavigate } from 'react-router-dom';
 
 import { Input } from '../Input';
 import { Button } from '../Button';
-import { Toast } from 'primereact/toast';
+import toast from 'react-hot-toast';
 
 import './RegisterCard.css';
 
@@ -16,7 +17,6 @@ const registerErrorMessages = {
 };
 
 export function RegisterCard() {
-  const toast = useRef(null);
   const navigate = useNavigate(); 
   const { signUp } = useAuth();
 
@@ -29,23 +29,13 @@ export function RegisterCard() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      return toast.current.show({ 
-        severity: 'warn', 
-        summary: 'Atenção', 
-        detail: 'As senhas não coincidem!', 
-        life: 3000 
-      });
+      return toast.error('As senhas não coincidem!');
     }
 
     try {
       await signUp(email, password, name);
       
-      toast.current.show({ 
-        severity: 'success', 
-        summary: 'Conta Criada!', 
-        detail: 'Bem-vindo à Manto Store!', 
-        life: 2000 
-      });
+      toast.success('Conta criada! Bem-vindo à Manto Store!');
       
       setName('');
       setEmail('');
@@ -59,18 +49,13 @@ export function RegisterCard() {
     } catch (error) {
       console.error("Erro no cadastro:", error.code);
       const friendlyMessage = registerErrorMessages[error.code] || 'Erro ao criar conta. Tente novamente.';
-      toast.current.show({ 
-        severity: 'error', 
-        summary: 'Erro no Registro', 
-        detail: friendlyMessage, 
-        life: 4000 
-      });
+      
+      toast.error(friendlyMessage);
     }
   };
 
   return (
     <div className='card-container'>
-      <Toast ref={toast}/>
       <h2 className='card-title'>Primeiro Acesso</h2>
       <form className='card-form' onSubmit={handleRegister}>
         <Input

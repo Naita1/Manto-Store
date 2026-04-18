@@ -1,11 +1,10 @@
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext'; 
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react'; 
 
-import { Toast } from 'primereact/toast';
+import toast from 'react-hot-toast'; 
 import { Button } from '../Button';
 import { Input } from '../Input';
-import { Link } from 'react-router-dom';
 
 import './LoginCard.css';
 
@@ -19,7 +18,6 @@ const loginErrorMessages = {
 };
 
 export function LoginCard() {
-  const toast = useRef(null);
   const navigate = useNavigate(); 
   
   const [email, setEmail] = useState('');
@@ -35,28 +33,18 @@ export function LoginCard() {
     try {
       await login(email, password);
       
-      toast.current.show({ 
-        severity: 'success', 
-        summary: 'Login Bem-Sucedido', 
-        detail: 'Bem-vindo de volta!', 
-        life: 2000 
-      });
+      toast.success('Bem-vindo de volta!');
 
       setTimeout(() => {
         navigate('/'); 
-      }, 2000);
+      }, 1500);
 
     } 
     catch (error) {
       console.error("Erro original:", error.code);
       const friendlyMessage = loginErrorMessages[error.code] || 'Ocorreu um erro inesperado.';
 
-      toast.current.show({ 
-        severity: 'error', 
-        summary: 'Erro de Acesso', 
-        detail: friendlyMessage, 
-        life: 4000 
-      });
+      toast.error(friendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -64,7 +52,6 @@ export function LoginCard() {
 
   return (
     <div className="card-container">
-      <Toast ref={toast}/>
       <h2 className="card-title">Já sou cadastrado</h2>
       
       <form className="card-form" onSubmit={handleLogin}>
