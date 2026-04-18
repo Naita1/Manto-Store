@@ -68,6 +68,7 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   border: 1px solid transparent; 
 }
+
 .box-header {
   background: none !important;
   background-color: transparent !important;
@@ -94,12 +95,8 @@
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
-}
-
-.input-wrapper label {
   font-size: 0.75rem;
   color: var(--text-muted);
-  margin-bottom: 0.6rem;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -152,30 +149,6 @@
   color: var(--text-color) !important;
   background: rgba(178, 34, 34, 0.1) !important;
 }
-
-
-.profile-avatar-container {
-  position: relative;
-  width: fit-content;
-  margin: 0 auto;
-}
-
-.loyalty-badge {
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.65rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: #fff;
-  border: 2px solid var(--bg-color);
-}
-
-.loyalty-badge.bronze { background: #cd7f32; }
-.loyalty-badge.silver { background: #c0c0c0; }
-.loyalty-badge.gold { background: #ffd700; color: #000; }
 
 .orders-list {
   display: flex;
@@ -232,65 +205,18 @@
   font-style: italic;
 }
 
-.avatar-edit-container {
-  position: relative;
-  width: 130px;
-  height: 130px;
-  margin: 0 auto;
-  cursor: pointer;
-}
-
-.avatar-wrapper-main {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid var(--primary-color);
-  background: var(--card-color);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatar-img-main {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-placeholder-main {
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--primary-color);
-}
-
-.avatar-upload-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+.side-profile-column {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  color: white;
+  justify-content: space-between;
 }
 
-.avatar-edit-container:hover .avatar-upload-overlay {
-  opacity: 1;
+.main-profile-column {
+  height: 100%;
 }
 
-.camera-icon {
-  font-size: 1.5rem;
-  margin-bottom: 5px;
-}
-
-.avatar-upload-overlay span {
-  font-size: 0.6rem;
-  font-weight: 900;
-  letter-spacing: 1px;
+.main-profile-column .info-box-styled {
+  height: 100%;
 }
 
 @media (max-width: 992px) {

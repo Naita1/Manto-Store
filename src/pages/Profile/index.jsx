@@ -15,7 +15,6 @@ export function ProfilePage() {
     phone: '', 
     address: '',
     notifications: { email: true, sms: false }, 
-    loyaltyLevel: 'Bronze'
   });
   
   const [orders, setOrders] = useState([]); 
@@ -73,9 +72,7 @@ export function ProfilePage() {
       <div className="profile-hero">
         <div className="avatar-circle-placeholder">
           {userData?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
-          <div className={`loyalty-badge ${userData.loyaltyLevel.toLowerCase()}`}>
-            {userData.loyaltyLevel}
-          </div>
+         
         </div>
 
         <h1 className="profile-display-name">{userData?.name || "Usuário"}</h1>
@@ -108,22 +105,6 @@ export function ProfilePage() {
             </div>
             {isEditing && <Button onClick={handleSave}>CONFIRMAR ALTERAÇÕES</Button>}
           </div>
-
-          <div className="info-box-styled" style={{ marginTop: '2rem' }}>
-            <div className="box-header">ÚLTIMOS PEDIDOS</div>
-            <div className="orders-list">
-              {orders.length > 0 ? orders.map(order => (
-                <div key={order.id} className="order-item">
-                  <div className="order-info">
-                    <span>#{order.id.slice(-6).toUpperCase()}</span>
-                    <small>{order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'Recente'}</small>
-                  </div>
-                  <div className="order-status">{order.status || 'Processando'}</div>
-                  <div className="order-total">R$ {order.total}</div>
-                </div>
-              )) : <p className="empty-msg">Nenhum pedido encontrado.</p>}
-            </div>
-          </div>
         </div>
 
         <div className="side-profile-column">
@@ -150,6 +131,21 @@ export function ProfilePage() {
           </div>
         </div>
       </div>
+               <div className="info-box-styled" style={{ marginTop: '2rem' }}>
+            <div className="box-header">ÚLTIMOS PEDIDOS</div>
+            <div className="orders-list">
+              {orders.length > 0 ? orders.map(order => (
+                <div key={order.id} className="order-item">
+                  <div className="order-info">
+                    <span>#{order.id.slice(-6).toUpperCase()}</span>
+                    <small>{order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'Recente'}</small>
+                  </div>
+                  <div className="order-status">{order.status || 'Processando'}</div>
+                  <div className="order-total">R$ {order.total}</div>
+                </div>
+              )) : <p className="empty-msg">Nenhum pedido encontrado.</p>}
+            </div>
+          </div>
     </div>
   );
 }
