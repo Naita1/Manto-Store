@@ -1,21 +1,77 @@
+import { doc, getDoc, collection, query, limit, getDocs, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+
+import { useAuth } from '../../contexts/UseAuth'; 
 import { db } from '../../services/firebase'; 
+
 import './Product.css';
 
 export function ProductPage() {
+
   const { id } = useParams();
+  
+  const { user } = useAuth();
+  
+  const navigate = useNavigate();
   
   const [produto, setProduto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imagemPrincipal, setImagemPrincipal] = useState('');
+  const [accordionsAbertos, setAccordionsAbertos] = useState([]);
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
-  const [accordionsAbertos, setAccordionsAbertos] = useState([0]);
-
+  const [produtosRecomendados, setProdutosRecomendados] = useState([]);
+  
   const fallbackImage = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
 
+  const handleAddToCart = async (redirect = false) => {
+    if (!user) {
+      alert("Você precisa estar logado para adicionar itens ao carrinho!");
+      navigate('/login');
+      return;
+    }
+
+    if (tamanhosDisponiveis.length > 0 && !tamanhoSelecionado) {
+      alert("Por favor, selecione um tamanho antes de continuar.");
+      return;
+    }
+
+    try {
+      const cartRef = doc(db, 'carrinhos', user.uid);
+      
+      const itemCarrinho = {
+        productId: id,
+        title: produto.title,
+        price: produto.price,
+        image: imagemPrincipal,
+        size: tamanhoSelecionado,
+        quantity: 1,
+        addedAt: new Date()
+      };
+
+      try {
+        await updateDoc(cartRef, {
+          items: arrayUnion(itemCarrinho)
+        });
+      } catch (err) {
+        await setDoc(cartRef, {
+          items: [itemCarrinho]
+        });
+      }
+
+      if (redirect) {
+        navigate('/cart');
+      } else {
+        alert("Produto adicionado ao manto-carrinho! ⚽");
+      }
+
+    } catch (error) {
+      console.error("Erro ao adicionar ao carrinho:", error);
+      alert("Erro ao salvar no banco de dados.");
+    }
+  };
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     async function buscarProduto() {
       try {
         const docRef = doc(db, 'produtos', id);
@@ -39,9 +95,30 @@ export function ProductPage() {
         setLoading(false);
       }
     }
+
+    async function buscarProdutosRelacionados() {
+      try {
+        const q = query(collection(db, 'produtos'), limit(10));
+        const querySnapshot = await getDocs(q);
+        
+        const produtos = [];
+        querySnapshot.forEach((doc) => {
+          if (doc.id !== id) {
+            produtos.push({ id: doc.id, ...doc.data() });
+          }
+        });
+
+        const embaralhados = produtos.sort(() => 0.5 - Math.random()).slice(0, 4);
+        setProdutosRecomendados(embaralhados);
+        
+      } catch (error) {
+        console.error("Erro ao buscar produtos recomendados:", error);
+      }
+    }
     
     if (id) {
       buscarProduto();
+      buscarProdutosRelacionados();
     }
   }, [id]);
 
@@ -87,8 +164,7 @@ export function ProductPage() {
     );
   };
 
-  const produtosRecomendados = [1, 2, 3, 4]; 
-
+ 
   return (
     <div className="product-page-container">
       
@@ -190,7 +266,7 @@ export function ProductPage() {
               
               <button 
                 className="btn-add-cart"
-                onClick={() => console.log("Adicionando produto ao carrinho...")}
+                onClick={() => handleAddToCart(false)}                
                 title="Adicionar ao Carrinho"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
@@ -236,23 +312,45 @@ export function ProductPage() {
         })}
       </section>
 
-      <section className="related-products-section">
+           <section className="related-products-section">
         <h3 className="related-title">VOCÊ TAMBÉM PODE GOSTAR</h3>
         <div className="related-carousel-container">
           <div className="related-carousel">
-            {produtosRecomendados.map((item) => (
-              <div key={item} className="related-card">
-                <div className="related-card-img">
-                  <img src={fallbackImage} alt="Produto Recomendado" />
-                </div>
-                <div className="related-card-info">
-                  <p className="related-card-name">VEJA MAIS PRODUTOS</p>
-                  <p className="related-card-price">R$ 0,00</p>
-                </div>
-              </div>
-            ))}
+            {produtosRecomendados.length > 0 ? (
+              produtosRecomendados.map((item) => {
+                const imagemItem = item.image && Array.isArray(item.image) && item.image.length > 0 
+                  ? item.image[0] 
+                  : fallbackImage;
+
+                return (
+                  <div 
+                    key={item.id} 
+                    className="related-card"
+                    onClick={() => navigate(`/produto/${item.id}`)} 
+                  >
+                    <div className="related-card-img">
+                      <img 
+                        src={imagemItem} 
+                        alt={item.title || "Produto Recomendado"} 
+                        onError={(e) => { e.target.src = fallbackImage }}
+                      />
+                    </div>
+                    <div className="related-card-info">
+                      <p className="related-card-name">{item.title}</p>
+                      <p className="related-card-price">
+                        {item.price 
+                          ? item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+                          : 'R$ 0,00'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p style={{ color: '#A0A0A0', fontSize: '0.9rem' }}>Buscando produtos...</p>
+            )}
           </div>
-          <button className="carousel-arrow">❯</button>
+          {produtosRecomendados.length > 0 && <button className="carousel-arrow">❯</button>}
         </div>
       </section>
 

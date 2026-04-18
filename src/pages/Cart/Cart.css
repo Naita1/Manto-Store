@@ -241,3 +241,29 @@
   cursor: not-allowed;
   filter: none;
 }
+
+/* ... (teu código anterior do Cart.css) ... */
+
+.btn-remove-item {
+  background: none;
+  border: none;
+  color: #ff4d4d;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  cursor: pointer;
+  width: fit-content;
+  padding: 0;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+.btn-remove-item:hover {
+  color: #ff0000;
+}
+
+.loading-msg {
+  color: #FFF;
+  text-align: center;
+  padding: 5rem;
+  font-size: 1.2rem;
+}
