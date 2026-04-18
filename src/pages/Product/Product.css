@@ -455,55 +455,6 @@
   color: var(--text-color);
 }
 
-@media (max-width: 992px) {
-  .product-top-section {
-    flex-direction: column;
-  }
-
-  .product-gallery {
-    flex-direction: column-reverse; 
-  }
-
-  .product-thumbnails {
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .product-thumbnails img {
-    width: 80px;
-    height: 80px;
-  }
-
-  .product-image-large:hover img {
-    transform: scale(1.08); 
-  } 
-
-}
-
-@media (max-width: 576px) {
-  .product-page-container {
-    padding: 1rem;
-  }
-
-  .product-title-large {
-    font-size: 1.4rem;
-  }
-
-  .product-price-large {
-    font-size: 1.8rem;
-  }
-
-  .product-image-large {
-      aspect-ratio: 1 / 1; 
-    }
-
-  .btn-personalize {
-    font-size: 0.9rem;
-    padding: 1rem;
-  }
-}
-
 .btn-buy-container {
   display: flex;
   background-color: var(--primary-color);
@@ -552,4 +503,98 @@
 
 .btn-buy-now:hover {
   background-color: #901A1A; 
+}
+
+.personalize-inputs-container {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  animation: slideDown 0.3s ease forwards; 
+}
+
+.personalize-input {
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background-color: transparent;
+  color: var(--text-color);
+  outline: none;
+  font-size: 0.9rem;
+  transition: border-color var(--transition);
+}
+
+.personalize-input:focus {
+  border-color: var(--primary-color);
+}
+
+.input-nome {
+  flex: 2;
+  text-transform: uppercase;
+}
+
+.input-numero {
+  flex: 1;
+  text-align: center;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@media (max-width: 992px) {
+  .product-top-section {
+    flex-direction: column;
+  }
+
+  .product-gallery {
+    flex-direction: column-reverse; 
+  }
+
+  .product-thumbnails {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .product-thumbnails img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .product-image-large:hover img {
+    transform: scale(1.08); 
+  } 
+
+}
+
+@media (max-width: 576px) {
+  .product-page-container {
+    padding: 1rem;
+  }
+
+  .product-title-large {
+    font-size: 1.4rem;
+  }
+
+  .product-price-large {
+    font-size: 1.8rem;
+  }
+
+  .product-image-large {
+      aspect-ratio: 1 / 1; 
+    }
+
+  .btn-personalize {
+    font-size: 0.9rem;
+    padding: 1rem;
+  }
 }

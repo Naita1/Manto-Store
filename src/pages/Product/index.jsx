@@ -21,10 +21,14 @@ export function ProductPage() {
   const [accordionsAbertos, setAccordionsAbertos] = useState([]);
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
   const [produtosRecomendados, setProdutosRecomendados] = useState([]);
+
+  const [querPersonalizar, setQuerPersonalizar] = useState(false);
+  const [nomePersonalizado, setNomePersonalizado] = useState('');
+  const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
   
   const fallbackImage = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
 
-  const handleAddToCart = async (redirect = false) => {
+const handleAddToCart = async (redirect = false) => {
     if (!user) {
       alert("Você precisa estar logado para adicionar itens ao carrinho!");
       navigate('/login');
@@ -36,31 +40,54 @@ export function ProductPage() {
       return;
     }
 
+    if (querPersonalizar && (!nomePersonalizado || !numeroPersonalizado)) {
+      alert("Você escolheu personalizar! Por favor, preencha o Nome e o Número do seu manto.");
+      return;
+    }
+
     try {
       const cartRef = doc(db, 'carrinhos', user.uid);
+      const cartSnap = await getDoc(cartRef);
       
-      const itemCarrinho = {
+      const novoItem = {
         productId: id,
         title: produto.title,
         price: produto.price,
         image: imagemPrincipal,
         size: tamanhoSelecionado,
         quantity: 1,
+        personalizacao: querPersonalizar ? { nome: nomePersonalizado, numero: numeroPersonalizado } : null,
         addedAt: new Date()
       };
 
-      try {
-        await updateDoc(cartRef, {
-          items: arrayUnion(itemCarrinho)
+      if (cartSnap.exists()) {
+        const cartData = cartSnap.data();
+        let items = cartData.items || [];
+
+        const itemIndex = items.findIndex(item => {
+          const mesmoProduto = item.productId === novoItem.productId;
+          const mesmoTamanho = item.size === novoItem.size;
+          
+          const formatarPers = (p) => p ? `${p.nome}-${p.numero}` : 'nenhuma';
+          const mesmaPersonalizacao = formatarPers(item.personalizacao) === formatarPers(novoItem.personalizacao);
+
+          return mesmoProduto && mesmoTamanho && mesmaPersonalizacao;
         });
-      } catch (err) {
-        await setDoc(cartRef, {
-          items: [itemCarrinho]
-        });
+
+        if (itemIndex > -1) {
+          items[itemIndex].quantity += 1;
+        } else {
+          items.push(novoItem);
+        }
+
+        await updateDoc(cartRef, { items: items });
+
+      } else {
+        await setDoc(cartRef, { items: [novoItem] });
       }
 
       if (redirect) {
-        navigate('/cart');
+        navigate('/cart'); 
       } else {
         alert("Produto adicionado ao manto-carrinho! ⚽");
       }
@@ -70,8 +97,15 @@ export function ProductPage() {
       alert("Erro ao salvar no banco de dados.");
     }
   };
+
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setLoading(true);
+    setProduto(null);
+    setTamanhoSelecionado('');
+    setQuerPersonalizar(false);
+    setNomePersonalizado('');
+    setNumeroPersonalizado('');    
+    
     async function buscarProduto() {
       try {
         const docRef = doc(db, 'produtos', id);
@@ -258,10 +292,33 @@ export function ProductPage() {
           </div>
 
           <div className="action-buttons">
-            <button className="btn-personalize">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <button 
+              className="btn-personalize"
+              onClick={() => setQuerPersonalizar(!querPersonalizar)}
+            >
               PERSONALIZE DE GRAÇA
             </button>
+
+            {querPersonalizar && (
+              <div className="personalize-inputs-container">
+                <input 
+                  type="text" 
+                  placeholder="NOME (Ex: RONALDO)" 
+                  value={nomePersonalizado}
+                  onChange={(e) => setNomePersonalizado(e.target.value.toUpperCase())}
+                  maxLength="15"
+                  className="personalize-input input-nome"
+                />
+                <input 
+                  type="text" 
+                  placeholder="Nº" 
+                  value={numeroPersonalizado}
+                  onChange={(e) => setNumeroPersonalizado(e.target.value.replace(/\D/g, ''))} 
+                  maxLength="2"
+                  className="personalize-input input-numero"
+                />
+              </div>
+            )}
             <div className="btn-buy-container">
               
               <button 
@@ -274,7 +331,7 @@ export function ProductPage() {
 
               <button 
                 className="btn-buy-now"
-                onClick={() => console.log("Indo direto para o pagamento...")}
+                onClick={() => handleAddToCart(true)}
               >
                 COMPRAR AGORA
               </button>
