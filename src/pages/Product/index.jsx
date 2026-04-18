@@ -1,6 +1,6 @@
 import { doc, getDoc, collection, query, limit, getDocs, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react'; // Adicionado useRef
 
 import { useAuth } from '../../contexts/UseAuth'; 
 import { db } from '../../services/firebase'; 
@@ -10,11 +10,8 @@ import toast from 'react-hot-toast';
 import './Product.css';
 
 export function ProductPage() {
-
   const { id } = useParams();
-  
   const { user } = useAuth();
-  
   const navigate = useNavigate();
   
   const [produto, setProduto] = useState(null);
@@ -28,9 +25,12 @@ export function ProductPage() {
   const [nomePersonalizado, setNomePersonalizado] = useState('');
   const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
   
+  // Ref para o carrossel de recomendados
+  const carouselRef = useRef(null);
+
   const fallbackImage = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
 
-const handleAddToCart = async (redirect = false) => {
+  const handleAddToCart = async (redirect = false) => {
     if (!user) {
       toast.error("Você precisa estar logado para adicionar itens ao carrinho!");
       navigate('/login');
@@ -100,6 +100,13 @@ const handleAddToCart = async (redirect = false) => {
     }
   };
 
+  // Função para rolar o carrossel
+  const scrollCarousel = (offset) => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     setProduto(null);
@@ -134,7 +141,8 @@ const handleAddToCart = async (redirect = false) => {
 
     async function buscarProdutosRelacionados() {
       try {
-        const q = query(collection(db, 'produtos'), limit(10));
+        // Aumentado o limite de busca para 20
+        const q = query(collection(db, 'produtos'), limit(20));
         const querySnapshot = await getDocs(q);
         
         const produtos = [];
@@ -144,7 +152,8 @@ const handleAddToCart = async (redirect = false) => {
           }
         });
 
-        const embaralhados = produtos.sort(() => 0.5 - Math.random()).slice(0, 4);
+        // Pegando 10 itens para criar um bom efeito de carrossel
+        const embaralhados = produtos.sort(() => 0.5 - Math.random()).slice(0, 10);
         setProdutosRecomendados(embaralhados);
         
       } catch (error) {
@@ -196,11 +205,10 @@ const handleAddToCart = async (redirect = false) => {
     setAccordionsAbertos((prev) => 
       prev.includes(index) 
         ? prev.filter((item) => item !== index) 
-        : [...prev, index]                     
+        : [...prev, index]                    
     );
   };
 
- 
   return (
     <div className="product-page-container">
       
@@ -209,7 +217,6 @@ const handleAddToCart = async (redirect = false) => {
       </nav>
 
       <section className="product-top-section">
-        
         <div className="product-gallery">
           <div className="product-thumbnails">
             {listaImagens.map((img, index) => (
@@ -248,7 +255,6 @@ const handleAddToCart = async (redirect = false) => {
         </div>
 
         <div className="product-info-panel">
-          
           <div className="product-header">
             <div className="product-stars">
               ★★★★<span className="star-empty">★</span>
@@ -260,7 +266,6 @@ const handleAddToCart = async (redirect = false) => {
             <p className="product-price-large">
               {produto.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </p>
-            
             <p className="product-price-installments">
               EM ATÉ 12X DE {(produto.price / 12).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} SEM JUROS
             </p>
@@ -321,8 +326,8 @@ const handleAddToCart = async (redirect = false) => {
                 />
               </div>
             )}
+            
             <div className="btn-buy-container">
-              
               <button 
                 className="btn-add-cart"
                 onClick={() => handleAddToCart(false)}                
@@ -337,11 +342,8 @@ const handleAddToCart = async (redirect = false) => {
               >
                 COMPRAR AGORA
               </button>
-
             </div>
-
           </div>
-
         </div>
       </section>
 
@@ -371,10 +373,18 @@ const handleAddToCart = async (redirect = false) => {
         })}
       </section>
 
-           <section className="related-products-section">
+      <section className="related-products-section">
         <h3 className="related-title">VOCÊ TAMBÉM PODE GOSTAR</h3>
-        <div className="related-carousel-container">
-          <div className="related-carousel">
+        
+        <div className="carousel-wrapper"> {/* Usando a mesma estrutura Grid da Home */}
+          
+          {produtosRecomendados.length > 0 && (
+            <button className="carousel-btn left" onClick={() => scrollCarousel(-300)}>
+              &#10094;
+            </button>
+          )}
+
+          <div className="related-carousel product-row" ref={carouselRef}>
             {produtosRecomendados.length > 0 ? (
               produtosRecomendados.map((item) => {
                 const imagemItem = item.image && Array.isArray(item.image) && item.image.length > 0 
@@ -406,10 +416,15 @@ const handleAddToCart = async (redirect = false) => {
                 );
               })
             ) : (
-              <p style={{ color: '#A0A0A0', fontSize: '0.9rem' }}>Buscando produtos...</p>
+              <p style={{ color: '#A0A0A0', fontSize: '0.9rem', padding: '1rem' }}>Buscando produtos...</p>
             )}
           </div>
-          {produtosRecomendados.length > 0 && <button className="carousel-arrow">❯</button>}
+
+          {produtosRecomendados.length > 0 && (
+             <button className="carousel-btn right" onClick={() => scrollCarousel(300)}>
+               &#10095;
+             </button>
+          )}
         </div>
       </section>
 
