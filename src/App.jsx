@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast'; 
 import { MainLayout } from './components/MainLayout';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ChatButton } from './components/ChatButton';
+import { Toast } from './components/Toast';
 
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
@@ -34,37 +34,7 @@ function App() {
           <Footer />
           <ChatButton />
                     
-          <Toaster 
-            position="top-center"
-            reverseOrder={false}
-            toastOptions={{
-              style: {
-                minWidth: '600px',      
-                fontSize: '1.1rem',      
-                padding: '16px 24px',   
-                background: '#1E1E1E',  
-                color: '#fff',           
-                borderRadius: '12px',    
-                border: '2px solid #333',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.5)', 
-                fontWeight: '500',
-              },
-              success: {
-                duration: 4000,          
-                iconTheme: {
-                  primary: '#B22222', 
-                  secondary: '#fff',
-                },
-              },
-              error: {
-                duration: 5000,
-                iconTheme: {
-                  primary: '#ff4b4b',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
+          <Toast/>
         </MainLayout>
       </AuthProvider>
     </BrowserRouter>
