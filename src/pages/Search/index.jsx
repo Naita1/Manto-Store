@@ -13,7 +13,7 @@ export function SearchPage() {
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
+  useEffect(() => {
     const removerAcentos = (texto) => {
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     };
@@ -33,7 +33,6 @@ export function SearchPage() {
 
         const produtosFiltrados = listaProdutos.filter(produto => {
           if (!produto.title) return false;
-          
           const tituloProdutoLimpo = removerAcentos(produto.title.toLowerCase());
           return tituloProdutoLimpo.includes(termoBuscadoLimpo);
         });
@@ -55,30 +54,35 @@ export function SearchPage() {
   }, [query]);
 
   return (
-    <div style={{ padding: '2rem', minHeight: '60vh', color: '#fff' }}>
-      <h2>Resultados da busca por: "{query}"</h2>
+    <div className="search-page-container">
+      <header className="search-header">
+        <p className="search-subtitle">Resultados encontrados</p>
+        <h2>Busca por: <span>"{query}"</span></h2>
+      </header>
       
       {loading ? (
-        <p>Buscando produtos...</p>
-      ) : resultados.length === 0 ? (
-        <p>Nenhum produto encontrado para esse termo.</p>
-      ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-          gap: '1.5rem', 
-          marginTop: '2rem' 
-        }}>
-          {resultados.map(produto => (
-            <ProductCard 
-              key={produto.id} 
-              id={produto.id}
-              title={produto.title} 
-              price={produto.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              image={produto.image && produto.image[0] ? produto.image[0] : ''} 
-            />
-          ))}
+        <div className="search-status-container">
+          <div className="loader"></div>
+          <p>Buscando mantos...</p>
         </div>
+      ) : resultados.length === 0 ? (
+        <div className="search-status-container">
+          <p>Nenhum manto encontrado para "{query}".</p>
+          <a href="/" className="back-home-link">Voltar ao Início</a>
+        </div>
+      ) : (
+        <main className="results-grid">
+          {resultados.map(produto => (
+            <div key={produto.id} className="product-card-wrapper">
+              <ProductCard 
+                id={produto.id}
+                title={produto.title} 
+                price={produto.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                image={produto.image && produto.image[0] ? produto.image[0] : ''} 
+              />
+            </div>
+          ))}
+        </main>
       )}
     </div>
   );
