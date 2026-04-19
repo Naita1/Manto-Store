@@ -1,51 +1,51 @@
-# ⚽ Manto Store
+# 👕 Manto Store
 
-> Um e-commerce front-end moderno e responsivo dedicado à venda de camisas de futebol, com foco na melhor experiência de utilizador (UX) e segurança.
+> Uma plataforma de e-commerce premium voltada para a venda de camisas de futebol, com foco em uma experiência de usuário imersiva, design dark moderno e navegação fluida.
 
-🌐 **Aceda ao projeto em produção:** [Manto Store - Live Demo](https://manto-store-eight.vercel.app/)
+**🔗 Acesse o projeto online:** [Manto Store - Vercel](https://manto-store-eight.vercel.app/)
 
 ---
 
-## 📖 Sobre o Projeto
+## 🎨 Identidade Visual (Paleta de Cores)
 
-A **Manto Store** é uma aplicação web desenvolvida para simular uma loja online de artigos desportivos. O grande diferencial deste projeto é o cuidado com a interface e a interação do utilizador, oferecendo fluxos de autenticação fluidos, tratamento de erros amigável e componentes visuais interativos.
+O design foi construído para transmitir uma sensação "premium" e focada no esporte, utilizando um tema escuro de alto contraste.
+
+| Cor | Hexadecimal | Uso Principal |
+| :--- | :--- | :--- |
+| **Primary** | `#B22222` | Botões de ação, ícones, destaques e painéis expansíveis (Accordions). |
+| **Background** | `#121212` | Fundo principal da aplicação, criando o ambiente "Dark Mode". |
+| **Card / Surface**| `#1E1E1E` | Fundo de caixas de informação, modais e cards de produtos. |
+| **Text** | `#FFFFFF` | Textos principais, títulos e informações de alto nível. |
+
+---
 
 ## ✨ Funcionalidades Principais
 
-- **Autenticação de Utilizadores:** Fluxo completo de Sign Up e Sign In.
-- **Validação Dinâmica de Palavra-passe:** - Verificação em tempo real de requisitos (mínimo de 8 caracteres, maiúsculas, minúsculas, números e caracteres especiais).
-  - Barra de progresso visual que muda de cor (Vermelho -> Laranja -> Amarelo -> Verde) conforme a força da senha.
-  - Bloqueio inteligente de submissão para garantir a integridade dos dados e confirmação de senha.
-- **Notificações Amigáveis (Toasts):** Feedback imediato de sucesso ou erro nas ações do utilizador (ex: credenciais inválidas, conta criada).
-- **Design Responsivo:** Interface adaptável (Mobile-First) que funciona perfeitamente em smartphones, tablets e desktops.
-- **Interface Minimalista (UI/UX):** Componentes limpos, transições suaves e foco na usabilidade.
+### 🛍️ Catálogo e Produto
+* **Galeria Interativa com Zoom:** Página de detalhes com sistema de miniaturas e um efeito de lupa (zoom) ao passar o mouse sobre a imagem principal da camisa.
+* **Personalização de Manto:** Os usuários podem adicionar Nome e Número personalizados à camisa antes de adicionar ao carrinho.
+* **Calculadora de Frete:** Integração na página do produto para simular prazos e valores de entrega baseados no CEP.
+* **Detalhes em Accordion:** Informações dinâmicas divididas em abas expansíveis (Descrição, Tabela de Medidas, Avaliações e Dúvidas), otimizando o espaço da tela.
+* **Carrossel de Recomendações:** Seção "Você também pode gostar" exibindo um carrossel horizontal dinâmico com outros itens do banco de dados.
 
-## 🛠️ Tecnologias Utilizadas
+### 🛒 Carrinho e Checkout
+* **Carrinho Inteligente:** Controle de quantidade (botões + e -), agrupamento automático de itens idênticos e cálculo de subtotal/total em tempo real.
+* **Resumo do Pedido:** Interface limpa que exibe as preferências de pagamento e o endereço de entrega salvo pelo usuário.
 
-O projeto foi construído utilizando as seguintes tecnologias e bibliotecas:
+### 👤 Perfil e Gestão
+* **Painel do Usuário:** Área logada para gerenciamento de dados pessoais, preferências de notificação (Email/SMS) e histórico de "Últimos Pedidos".
+* **Integração Real-time:** Todo o fluxo (produtos, usuários, carrinhos e pedidos) é sincronizado em tempo real com o banco de dados.
 
-- **[React](https://reactjs.org/)** - Biblioteca JavaScript para construção da interface.
-- **[React Router Dom](https://reactrouter.com/)** - Navegação e roteamento de páginas (SPA).
-- **[React Hot Toast](https://react-hot-toast.com/)** - Sistema de notificações e alertas.
-- **Context API** - Gestão de estado global (utilizado no `AuthContext` para a sessão do utilizador).
-- **CSS3 / CSS Modules** - Estilização pura com variáveis CSS para fácil manutenção e temas.
-- **Vercel** - Hospedagem e CI/CD.
+---
 
-## 🚀 Como executar o projeto localmente
+## 💻 Tecnologias Utilizadas
 
-Para clonar e executar esta aplicação, vai precisar do [Git](https://git-scm.com) e do [Node.js](https://nodejs.org/) instalados no seu computador.
+| Tecnologia | Descrição |
+| :--- | :--- |
+| **React (Vite)** | Biblioteca principal para construção da interface de usuário (UI). |
+| **React Router Dom** | Gerenciamento de rotas e navegação fluida entre páginas (SPA). |
+| **Firebase Firestore** | Banco de dados NoSQL em nuvem para armazenar o catálogo, carrinhos individuais e histórico de usuários. |
+| **Firebase Auth** | Autenticação e gerenciamento seguro de sessões. |
+| **CSS3 Avançado** | Estilização "Pixel Perfect" construída do zero, animações (keyframes, transições de grid) e responsividade para dispositivos móveis. |
 
-No seu terminal, execute os seguintes comandos:
-
-```bash
-# Clone este repositório
-$ git clone [https://github.com/SEU-USUARIO/manto-store.git](https://github.com/SEU-USUARIO/manto-store.git)
-
-# Aceda à pasta do projeto
-$ cd manto-store
-
-# Instale as dependências
-$ npm install
-
-# Execute a aplicação em modo de desenvolvimento
-$ npm run dev
+---
