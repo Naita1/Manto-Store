@@ -1,7 +1,7 @@
 import { useAuth } from '../../contexts/UseAuth'; 
 import { useState } from 'react';
 
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; 
 
 import { Input } from '../Input';
 import { Button } from '../Button';
@@ -57,6 +57,7 @@ export function RegisterCard() {
   return (
     <div className='card-container'>
       <h2 className='card-title'>Primeiro Acesso</h2>
+      
       <form className='card-form' onSubmit={handleRegister}>
         <Input
           id="full-name"
@@ -101,10 +102,15 @@ export function RegisterCard() {
         <Button type="submit">Cadastrar</Button>
       </form>
       
-      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-        <Link to="/login" className="login-link">
-          Já tenho cadastro
-        </Link>
+      <div className="login-section">
+        <p className="login-text">Já tem cadastro?</p>
+        <Button 
+          type="button" 
+          className="button-secondary"
+          onClick={() => navigate('/login')}
+        >
+          Entrar na minha conta
+        </Button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext'; 
 import { useState } from 'react'; 
 
@@ -50,24 +50,24 @@ export function LoginCard() {
   };
 
   const handleForgotPassword = async () => {
-  if (!email) {
-    return toast.error('Por favor, digite seu e-mail primeiro.');
-  }
-
-  try {
-    setLoading(true);
-    await resetPassword(email);
-    toast.success('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
-  } catch (error) {
-    if (error.code === 'auth/user-not-found') {
-      toast.error('E-mail não cadastrado.');
-    } else {
-      toast.error('Erro ao enviar e-mail de redefinição.');
+    if (!email) {
+      return toast.error('Por favor, digite seu e-mail primeiro.');
     }
-  } finally {
-    setLoading(false);
-  }
-};
+
+    try {
+      setLoading(true);
+      await resetPassword(email);
+      toast.success('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        toast.error('E-mail não cadastrado.');
+      } else {
+        toast.error('Erro ao enviar e-mail de redefinição.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="card-container">
@@ -94,24 +94,29 @@ export function LoginCard() {
           required
         />
         
-        <button 
+        <Button 
           type="button" 
           className="forgot-password-btn" 
           onClick={handleForgotPassword}
           disabled={loading}
         >
           Esqueci minha senha
-        </button>     
-           
+        </Button>     
+
         <Button type="submit" disabled={loading}>
           {loading ? 'Carregando...' : 'Entrar'}
         </Button>
       </form>
 
-      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-        <Link to="/register" className="login-link">
-          Primeiro Acesso
-        </Link>
+      <div className="register-section">
+        <p className="register-text">Não possui uma conta?</p>
+        <Button 
+          type="button"
+          className="button-secondary"
+          onClick={() => navigate('/register')}
+        >
+          Criar conta
+        </Button>
       </div>
     </div>
   );
