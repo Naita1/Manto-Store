@@ -28,11 +28,11 @@ O design foi construído para transmitir uma sensação "premium" e focada no es
 * **Detalhes em Accordion:** Informações dinâmicas divididas em abas expansíveis (Descrição, Tabela de Medidas, Avaliações e Dúvidas), otimizando o espaço da tela.
 * **Carrossel de Recomendações:** Seção "Você também pode gostar" exibindo um carrossel horizontal dinâmico com outros itens do banco de dados.
 
-### 🛒 Carrinho e Checkout
+###  Carrinho e Checkout
 * **Carrinho Inteligente:** Controle de quantidade (botões + e -), agrupamento automático de itens idênticos e cálculo de subtotal/total em tempo real.
 * **Resumo do Pedido:** Interface limpa que exibe as preferências de pagamento e o endereço de entrega salvo pelo usuário.
 
-### 👤 Perfil e Gestão
+###  Perfil e Gestão
 * **Painel do Usuário:** Área logada para gerenciamento de dados pessoais, preferências de notificação (Email/SMS) e histórico de "Últimos Pedidos".
 * **Integração Real-time:** Todo o fluxo (produtos, usuários, carrinhos e pedidos) é sincronizado em tempo real com o banco de dados.
 
