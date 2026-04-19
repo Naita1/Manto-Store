@@ -23,8 +23,7 @@ export function LoginCard() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const { login } = useAuth();
+  const { login, resetPassword } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -49,6 +48,26 @@ export function LoginCard() {
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async () => {
+  if (!email) {
+    return toast.error('Por favor, digite seu e-mail primeiro.');
+  }
+
+  try {
+    setLoading(true);
+    await resetPassword(email);
+    toast.success('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      toast.error('E-mail não cadastrado.');
+    } else {
+      toast.error('Erro ao enviar e-mail de redefinição.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="card-container">
@@ -75,8 +94,15 @@ export function LoginCard() {
           required
         />
         
-        <a href="#" className="forgot-password">Esqueci minha senha</a>
-        
+        <button 
+          type="button" 
+          className="forgot-password-btn" 
+          onClick={handleForgotPassword}
+          disabled={loading}
+        >
+          Esqueci minha senha
+        </button>     
+           
         <Button type="submit" disabled={loading}>
           {loading ? 'Carregando...' : 'Entrar'}
         </Button>
