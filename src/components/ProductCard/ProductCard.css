@@ -57,3 +57,39 @@
   color: var(--text-color);
   align-self: flex-end; 
 }
+
+@media (max-width: 480px) {
+  .product-card {
+    width: 155px; 
+  }
+
+  .product-image-container {
+    height: 160px; 
+  }
+
+  .product-info {
+    padding: 0.6rem; 
+  }
+
+  .product-title {
+    font-size: 0.6rem;
+    height: 1.5rem; 
+  }
+
+  .product-price {
+    font-size: 0.85rem; 
+  }
+.product-card:hover .product-image-container img {
+    transform: scale(1); 
+  }
+
+  .product-card:active {
+    transform: scale(0.96); 
+    transition: transform 0.1s ease;
+  }
+  
+  .product-card:active .product-image-container img {
+    transform: scale(2);
+  }
+
+}

@@ -43,3 +43,21 @@
   color: var(--primary-color);  
   transform: scale(1.15); 
 }
+
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    padding: 1.5rem; 
+    gap: 1.5rem; 
+    justify-content: center; 
+  }
+
+  .footer-text {
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-socials {
+    gap: 1.2rem;
+  }
+}

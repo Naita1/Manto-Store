@@ -39,3 +39,19 @@
   opacity: 1; 
   color: var(--primary-color); 
 }
+
+@media (max-width: 480px) {
+  .card-container {
+    padding: 1.5rem; 
+    border-radius: 0.8rem; 
+  }
+
+  .card-title {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .forgot-password {
+    margin-bottom: 1.5rem; 
+  }
+}
