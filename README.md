@@ -1,12 +1,12 @@
-# 👕 Manto Store
+#  Manto Store
 
 > Uma plataforma de e-commerce premium voltada para a venda de camisas de futebol, com foco em uma experiência de usuário imersiva, design dark moderno e navegação fluida.
 
-**🔗 Acesse o projeto online:** [Manto Store - Vercel](https://manto-store-eight.vercel.app/)
+** Acesse o projeto online:** [Manto Store - Vercel](https://manto-store-eight.vercel.app/)
 
 ---
 
-## 🎨 Identidade Visual (Paleta de Cores)
+##  Identidade Visual (Paleta de Cores)
 
 O design foi construído para transmitir uma sensação "premium" e focada no esporte, utilizando um tema escuro de alto contraste.
 
@@ -19,9 +19,9 @@ O design foi construído para transmitir uma sensação "premium" e focada no es
 
 ---
 
-## ✨ Funcionalidades Principais
+##  Funcionalidades Principais
 
-### 🛍️ Catálogo e Produto
+###  Catálogo e Produto
 * **Galeria Interativa com Zoom:** Página de detalhes com sistema de miniaturas e um efeito de lupa (zoom) ao passar o mouse sobre a imagem principal da camisa.
 * **Personalização de Manto:** Os usuários podem adicionar Nome e Número personalizados à camisa antes de adicionar ao carrinho.
 * **Calculadora de Frete:** Integração na página do produto para simular prazos e valores de entrega baseados no CEP.
@@ -38,7 +38,7 @@ O design foi construído para transmitir uma sensação "premium" e focada no es
 
 ---
 
-## 💻 Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 
 | Tecnologia | Descrição |
 | :--- | :--- |
