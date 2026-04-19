@@ -265,7 +265,9 @@
   padding: 5rem;
   font-size: 1.2rem;
 }
-
+/* =========================================
+   RESPONSIVIDADE (Tablets e Celulares)
+   ========================================= */
 
 @media (max-width: 768px) {
   .cart-page-container {

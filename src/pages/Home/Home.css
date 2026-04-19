@@ -83,6 +83,7 @@
   scrollbar-width: none;
   scroll-behavior: smooth;
   width: 100%; 
+  
 }
 
 .product-row::-webkit-scrollbar {
@@ -113,3 +114,29 @@
     width: 100vw; 
   }
 }
+
+@media screen and (max-width: 480px) {
+  .home-container {
+    padding-bottom: 2rem; 
+  }
+
+  .home-banner {
+    height: 180px; 
+  }
+
+  .showcase-section {
+    padding: 1.5rem 0 0.5rem 0; 
+  }
+
+  .showcase-title {
+    font-size: 0.9rem; 
+    padding-left: 1rem; 
+  }
+
+  .product-row {
+    padding-left: 1rem; 
+    padding-right: 1rem;
+    gap: 0.75rem;
+  }
+}
+
