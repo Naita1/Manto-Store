@@ -61,6 +61,48 @@
   color: white !important; 
 }
 
+.password-input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.strength-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.strength-bar-container {
+  height: 6px;
+  flex-grow: 1; 
+  background-color: rgba(255, 255, 255, 0.1); 
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.strength-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease-out, background-color 0.4s ease-out;
+}
+
+.strength-text {
+  font-size: 0.75rem;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: color 0.4s ease-out;
+}
+
+.password-hint {
+  font-size: 0.75rem;
+  color: #a0a0a0; 
+  margin-top: 0.4rem;
+  margin-bottom: 0;
+  font-style: italic;
+}
+
 @media (max-width: 480px) {
   .card-container {
     padding: 1.5rem; 

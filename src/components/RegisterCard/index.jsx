@@ -1,6 +1,5 @@
 import { useAuth } from '../../contexts/UseAuth'; 
 import { useState } from 'react';
-
 import { useNavigate } from 'react-router-dom'; 
 
 import { Input } from '../Input';
@@ -24,6 +23,34 @@ export function RegisterCard() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false); 
+
+  const passwordCriteria = {
+    minLength: password.length >= 8,
+    hasUpper: /[A-Z]/.test(password),
+    hasLower: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+  };
+
+  const metCriteriaCount = Object.values(passwordCriteria).filter(Boolean).length;
+  const isPasswordStrong = metCriteriaCount === 5;
+
+  const getStrengthColor = () => {
+    if (metCriteriaCount === 0) return 'transparent';
+    if (metCriteriaCount <= 2) return '#ff4d4d'; 
+    if (metCriteriaCount === 3) return '#ffa64d'; 
+    if (metCriteriaCount === 4) return '#ffd24d'; 
+    return '#51cf66';
+  };
+
+  const getStrengthText = () => {
+    if (metCriteriaCount === 0) return '';
+    if (metCriteriaCount <= 2) return 'Senha Fraca';
+    if (metCriteriaCount === 3) return 'Senha Razoável';
+    if (metCriteriaCount === 4) return 'Quase lá...';
+    return 'Senha Forte!';
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -32,15 +59,13 @@ export function RegisterCard() {
       return toast.error('As senhas não coincidem!');
     }
 
+    setLoading(true);
+
     try {
       await signUp(email, password, name);
-      
       toast.success('Conta criada! Bem-vindo à Manto Store!');
       
-      setName('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      setName(''); setEmail(''); setPassword(''); setConfirmPassword('');
 
       setTimeout(() => {
         navigate('/login'); 
@@ -49,8 +74,9 @@ export function RegisterCard() {
     } catch (error) {
       console.error("Erro no cadastro:", error.code);
       const friendlyMessage = registerErrorMessages[error.code] || 'Erro ao criar conta. Tente novamente.';
-      
       toast.error(friendlyMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,15 +105,40 @@ export function RegisterCard() {
           required
         />
 
-        <Input
-          id="password-register"
-          label="Senha"
-          type="password"
-          placeholder="Digite sua senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="password-input-group">
+          <Input
+            id="password-register"
+            label="Senha"
+            type="password"
+            placeholder="Digite sua senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          {password.length > 0 && (
+            <div className="strength-indicator">
+              <div className="strength-bar-container">
+                <div 
+                  className="strength-bar-fill" 
+                  style={{ 
+                    width: `${(metCriteriaCount / 5) * 100}%`, 
+                    backgroundColor: getStrengthColor() 
+                  }}
+                ></div>
+              </div>
+              <span className="strength-text" style={{ color: getStrengthColor() }}>
+                {getStrengthText()}
+              </span>
+            </div>
+          )}
+          
+          {password.length > 0 && !isPasswordStrong && (
+            <p className="password-hint">
+              Dica: Use 8+ caracteres, letras (A, a), números e símbolos (!@#$).
+            </p>
+          )}
+        </div>
 
         <Input
           id="confirm-password"
@@ -99,7 +150,13 @@ export function RegisterCard() {
           required
         />
 
-        <Button type="submit">Cadastrar</Button>
+        <Button 
+          type="submit" 
+          disabled={loading || !isPasswordStrong || password !== confirmPassword}
+          style={{ marginTop: '1rem' }}
+        >
+          {loading ? 'Cadastrando...' : 'Cadastrar'}
+        </Button>
       </form>
       
       <div className="login-section">
