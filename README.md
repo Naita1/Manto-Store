@@ -10,8 +10,6 @@
 
 A **Manto Store** é uma aplicação web desenvolvida para simular uma loja online de artigos desportivos. O grande diferencial deste projeto é o cuidado com a interface e a interação do utilizador, oferecendo fluxos de autenticação fluidos, tratamento de erros amigável e componentes visuais interativos.
 
-Um dos principais destaques técnicos é o sistema de registo, que conta com um **Medidor de Força de Senha Dinâmico** (Password Strength Meter) criado do zero, que orienta o utilizador a criar credenciais seguras através de feedback visual em tempo real.
-
 ## ✨ Funcionalidades Principais
 
 - **Autenticação de Utilizadores:** Fluxo completo de Sign Up e Sign In.
