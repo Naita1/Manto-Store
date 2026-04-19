@@ -2,7 +2,7 @@
 
 > Uma plataforma de e-commerce premium voltada para a venda de camisas de futebol, com foco em uma experiência de usuário imersiva, design dark moderno e navegação fluida.
 
-** Acesse o projeto online:** [Manto Store - Vercel](https://manto-store-eight.vercel.app/)
+**Acesse o projeto online:** [Manto Store - Vercel](https://manto-store-eight.vercel.app/)
 
 ---
 
