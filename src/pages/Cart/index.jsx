@@ -63,10 +63,20 @@ export function CartPage() {
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalFrete = cartItems.reduce((acc, item) => acc + (item.shipping?.valor || 0), 0);
+  const totalPedido = subtotal + totalFrete;
 
   const formatCurrency = (value) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
+
+  const dadosEntrega = cartItems.length > 0 && cartItems[0].shipping
+    ? `${cartItems[0].shipping.cidade} - CEP: ${cartItems[0].shipping.cep}`
+    : 'Nenhum CEP calculado';
+
+  const tipoFreteSelecionado = cartItems.length > 0 && cartItems[0].shipping
+    ? cartItems[0].shipping.tipo
+    : '';
 
   if (!user && !loading) {
     return (
@@ -106,6 +116,11 @@ export function CartPage() {
                 <div className="item-info">
                   <h3>{item.title}</h3>
                   <p>TAMANHO: {item.size}</p>
+                  {item.shipping && (
+                    <p style={{fontSize: '0.75rem', color: '#B22222'}}>
+                      Envio via: {item.shipping.tipo}
+                    </p>
+                  )}
                   <strong className="item-price">{formatCurrency(item.price)}</strong>
                   <button 
                     className="btn-remove-item" 
@@ -143,6 +158,16 @@ export function CartPage() {
             <span>{formatCurrency(subtotal)}</span>
           </div>
           
+          <div className="summary-line">
+            <span>FRETE {tipoFreteSelecionado && `(${tipoFreteSelecionado})`}:</span>
+            <span>{totalFrete > 0 ? formatCurrency(totalFrete) : 'A calcular...'}</span>
+          </div>
+
+          <div className="summary-total">
+            <span>TOTAL:</span>
+            <span style={{ color: 'var(--primary-color, #B22222)' }}>{formatCurrency(totalPedido)}</span>
+          </div>
+          
           <div className={`preference-box ${cartItems.length === 0 ? 'disabled-box' : ''}`}>
             <div className="box-header">PREFERÊNCIAS DE PAGAMENTO</div>
             <div className="box-content">
@@ -161,7 +186,7 @@ export function CartPage() {
                 <p>
                   {cartItems.length === 0 
                     ? 'Endereço indisponível' 
-                    : <>RUA ESPORTIVA, 100, SÃO PAULO - SP,<br/>11111-111</>}
+                    : dadosEntrega} 
                 </p>
               </div>
             </div>

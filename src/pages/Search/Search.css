@@ -1,3 +1,4 @@
+/* Container Geral */
 .search-page-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -8,6 +9,7 @@
   box-sizing: border-box;
 }
 
+/* Título da busca */
 .search-header {
   margin-bottom: 2rem;
   border-left: 4px solid #e50914;
@@ -23,6 +25,7 @@
   color: #e50914;
 }
 
+/* Grid- Desktop (ajusta conforme o espaço) */
 .results-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -66,8 +69,13 @@
   min-height: 80vh;
   background-color: var(--dark-bg);
   color: var(--text-main);
-} 
+  animation: fadeIn 0.5s ease-in;
+}
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .search-header {
   margin-bottom: 3.5rem;
@@ -101,9 +109,13 @@
 }
 
 .product-card-wrapper {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
 }
 
+.product-card-wrapper:hover {
+  transform: translateY(-8px);
+}
 
 .search-status-container {
   display: flex;
@@ -120,8 +132,12 @@
   border: 3px solid #333;
   border-top-color: var(--brand-red);
   border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 .back-home-link {
   padding: 1rem 2rem;
@@ -130,6 +146,7 @@
   text-decoration: none;
   font-weight: bold;
   border-radius: 50px;
+  transition: opacity 0.3s;
 }
 
 @media (max-width: 768px) {

@@ -1,12 +1,13 @@
 import { doc, getDoc, collection, query, limit, getDocs, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react'; // Adicionado useRef
+import { useState, useEffect, useRef } from 'react';
 
 import { useAuth } from '../../contexts/UseAuth'; 
 import { db } from '../../services/firebase'; 
 
 import toast from 'react-hot-toast';
 
+import { ShippingCalculator } from '../../components/ShippingCalculator';
 import './Product.css';
 
 export function ProductPage() {
@@ -25,10 +26,16 @@ export function ProductPage() {
   const [nomePersonalizado, setNomePersonalizado] = useState('');
   const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
   
-  // Ref para o carrossel de recomendados
   const carouselRef = useRef(null);
 
+  const [freteEscolhido, setFreteEscolhido] = useState(null);
+  
   const fallbackImage = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
+
+  const handleShippingChange = (dadosFrete) => {
+    setFreteEscolhido(dadosFrete);
+    console.log("Frete selecionado para o carrinho:", dadosFrete);
+  };
 
   const handleAddToCart = async (redirect = false) => {
     if (!user) {
@@ -40,6 +47,11 @@ export function ProductPage() {
     if (tamanhosDisponiveis.length > 0 && !tamanhoSelecionado) {
       toast.error("Por favor, selecione um tamanho antes de continuar.");
       return;
+    }
+
+    if (!freteEscolhido) {
+      toast.error('Por favor, calcule e selecione uma opção de frete antes de continuar.');
+      return; 
     }
 
     if (querPersonalizar && (!nomePersonalizado || !numeroPersonalizado)) {
@@ -58,6 +70,7 @@ export function ProductPage() {
         image: imagemPrincipal,
         size: tamanhoSelecionado,
         quantity: 1,
+        shipping: freteEscolhido,
         personalizacao: querPersonalizar ? { nome: nomePersonalizado, numero: numeroPersonalizado } : null,
         addedAt: new Date()
       };
@@ -100,7 +113,6 @@ export function ProductPage() {
     }
   };
 
-  // Função para rolar o carrossel
   const scrollCarousel = (offset) => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({ left: offset, behavior: 'smooth' });
@@ -270,7 +282,6 @@ export function ProductPage() {
               EM ATÉ 12X DE {(produto.price / 12).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} SEM JUROS
             </p>
           </div>
-
           <div className="product-sizes">
             <p className="section-label">SELECIONE O TAMANHO</p>
             <div className="size-buttons">
@@ -289,15 +300,7 @@ export function ProductPage() {
               )}
             </div>
           </div>
-
-          <div className="shipping-box">
-            <p className="section-label">CALCULAR FRETE</p>
-            <div className="shipping-input-group">
-              <input type="text" placeholder="00000-000" maxLength="9" />
-              <button>OK</button>
-            </div>
-          </div>
-
+             <ShippingCalculator onShippingSelected={handleShippingChange} />
           <div className="action-buttons">
             <button 
               className="btn-personalize"

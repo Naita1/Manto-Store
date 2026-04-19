@@ -24,20 +24,34 @@
   justify-content: space-between;
 }
 
-.forgot-password {
+/* Novo estilo para o botão de esqueci senha */
+.forgot-password-btn {
+  background: none;
+  border: none;
   color: var(--text-color);
+  font-family: inherit;
   font-size: 0.8rem;
   text-align: right; 
   margin-top: -1rem; 
   margin-bottom: 2rem; 
   text-decoration: none; 
   opacity: 0.7;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  cursor: pointer;
+  padding: 0;
+  width: fit-content;
+  align-self: flex-end;
 }
 
-.forgot-password:hover {
+.forgot-password-btn:hover:not(:disabled) {
   opacity: 1; 
   color: var(--primary-color); 
+  text-decoration: underline;
+}
+
+.forgot-password-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
 }
 
 @media (max-width: 480px) {
@@ -51,7 +65,7 @@
     margin-bottom: 1.5rem;
   }
 
-  .forgot-password {
+  .forgot-password-btn {
     margin-bottom: 1.5rem; 
   }
 }

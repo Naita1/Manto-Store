@@ -1,0 +1,129 @@
+.shipping-container {
+  background-color: var(--card-color);
+  border-radius: var(--border-radius); 
+  padding: 1.5rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.shipping-container .section-label {
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.05rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.shipping-input-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.shipping-input-group input {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  background-color: var(--bg-color);
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border var(--transition);
+}
+
+.shipping-input-group input:focus {
+  border-color: var(--primary-color);
+}
+
+.shipping-input-group button {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.shipping-input-group button:hover:not(:disabled) {
+  background-color: #901A1A;
+}
+
+.shipping-input-group button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.shipping-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+  animation: slideDown 0.3s ease forwards; 
+}
+
+.shipping-method {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  background-color: var(--bg-color);
+  border: 1px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.shipping-method:hover {
+  border-color: #555;
+  transform: translateY(-2px);
+}
+
+.shipping-method.active {
+  border-color: var(--primary-color);
+  background-color: rgba(178, 34, 34, 0.08);
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.shipping-method span {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.shipping-method strong {
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 576px) {
+  .shipping-input-group {
+    flex-direction: column;
+  }
+
+  .shipping-input-group button {
+    padding: 0.8rem;
+  }
+  
+  .shipping-method {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
