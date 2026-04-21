@@ -17,22 +17,19 @@
 }
 
 .showcase-section {
-  width: 100%;
-  padding: 2rem 0.5rem 1rem 0.5rem; 
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem; 
-  max-width: 100%; 
-  margin: 0 auto; 
+  max-width: 1700px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
 }
 
 .showcase-title {
-  font-size: 1rem;
-  letter-spacing: 0.1rem;
-  color: var(--text-color);
-  font-weight: normal;
-  opacity: 0.9;
-  padding-left: 3.5rem; 
+  font-size: 1.0rem;
+  /* font-weight: 800; */
+  letter-spacing: 0.2rem;
+  padding-left: 0; 
+  margin-bottom: 1rem;
+  border-left: 4px solid #e50914; 
+  padding-left: 15px;
 }
 
 .showcase-section.grid-mode .carousel-wrapper {
