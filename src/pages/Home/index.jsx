@@ -106,6 +106,7 @@ export function HomePage() {
           aoFiltrar={(pais, time = null) => {
             setFiltroPais(pais);
             setFiltroTime(time);
+            setSidebarAberta(false);
             if(window.innerWidth < 768) setSidebarAberta(false);
           }}
         />

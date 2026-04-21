@@ -4,9 +4,9 @@ import './Sidebar.css';
 export function Sidebar({ menuFiltros, filtroPais, filtroTime, aoFiltrar, aberta, setAberta }) {
       const [paisExpandido, setPaisExpandido] = useState(null);
 
-  const togglePais = (pais) => {
-    setPaisExpandido(paisExpandido === pais ? null : pais);
-  };
+//   const togglePais = (pais) => {
+//     setPaisExpandido(paisExpandido === pais ? null : pais);
+//   };
 
 return (
     <aside className={`sidebar-container ${aberta ? 'aberta' : ''}`}>
