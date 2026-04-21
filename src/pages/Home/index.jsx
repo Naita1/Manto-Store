@@ -117,12 +117,17 @@ export function HomePage() {
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url(${banner})` 
         }}
         ></section>
-      <Button 
-        className="btn-filtros" 
-        onClick={() => setSidebarAberta(true)}
-      >
-        &#9776; Filtros
-      </Button>
+        
+      <div className="filter-bar">
+        <Button 
+          className="btn-filtros" 
+          onClick={() => setSidebarAberta(true)}
+        >
+          <span className="icon">☰</span> FILTRAR PRODUTOS
+        </Button>
+      </div>
+        <div className="products-container">  
+
       <ProductSection 
         title={filtroPais === 'Todos' ? "NOVIDADES DA LOJA" : (filtroTime || filtroPais).toUpperCase()} 
         produtos={produtos} 
@@ -141,6 +146,7 @@ export function HomePage() {
           />
         </>
       )}
+          </div>
         </main>
     </div>
   );

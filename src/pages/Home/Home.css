@@ -90,18 +90,6 @@
   display: none;
 }
 
-.home-page-wrapper {
-  position: relative;
-  min-height: 100vh;
-}
-
-.store-layout {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  min-height: 100vh;
-}
-
 .main-content {
   flex: 1; 
   min-width: 0;
@@ -113,40 +101,52 @@
   padding-bottom: 4rem;
 }
 
-.btn-filtros {
-  position: fixed;
-  top: 100px; 
-  left: 20px;
+.filter-bar {
+  position: fixed; 
+  left: 0;
+  top: 50%; 
+  transform: translateY(-50%);
   z-index: 100;
-  background: rgba(26, 26, 26, 0.85); 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  background-color: transparent;
+}
+
+.btn-filtros {
+  position: relative;
+  width: 50px; 
+  height: 50px;
+  padding: 0; 
+  overflow: hidden; 
+  white-space: nowrap; 
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: none; 
   color: #fff;
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 1px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  padding: 10px 24px;
-  border-radius: 50px; 
+  border-radius: 0 8px 8px 0; 
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.btn-filtros:hover {
-  background: #e50914;
-  border-color: #e50914;
-  transform: translateY(-3px); 
-  box-shadow: 0 8px 25px rgba(229, 9, 20, 0.35);
+  transition: width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), background 0.3s;
 }
 
 .btn-filtros .icon {
-  font-size: 0.9rem;
-  opacity: 0.8;
+  min-width: 50px; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.btn-filtros:hover {
+  width: 220px; 
+  background: #e50914; 
+  border-color: #e50914;
 }
 
 .main-content {
@@ -176,6 +176,28 @@
     grid-column: 1; 
     padding-left: 1.5rem; 
     width: 100vw; 
+  }
+
+.filter-bar {
+    position: relative;
+    top: 0;
+    left: 0;
+    transform: none;
+    padding: 1.5rem;
+    width: 100%;
+  }
+
+  .btn-filtros {
+    width: 100%; 
+    height: auto;
+    padding: 14px;
+    justify-content: center;
+    border-radius: 50px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn-filtros:hover {
+    width: 100%;
   }
 }
 
