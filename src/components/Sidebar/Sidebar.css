@@ -78,28 +78,51 @@
 .sidebar-sub-items {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-out;
+  opacity: 0; 
+  transform: translateY(-5px); 
   display: flex;
   flex-direction: column;
-  padding-left: 1rem;
+  padding-left: 1.2rem;
+  transition: 
+    max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s ease,
+    transform 0.4s ease,
+    margin 0.3s ease;
 }
 
 .sidebar-sub-items.expandido {
-  max-height: 500px; 
-  margin-bottom: 1rem;
+  max-height: 1000px; 
+  opacity: 1;
+  transform: translateY(0); 
+  margin-bottom: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 .sidebar-sub-items button {
   background: none;
   border: none;
-  color: #666;
+  color: #777;
   text-align: left;
-  padding: 8px 0;
+  padding: 10px 0;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  position: relative;
+  transition: all 0.3s ease;
+  opacity: 0.8;
 }
 
-.sidebar-sub-items button:hover, .sidebar-sub-items button.active {
+.sidebar-sub-items button:hover, 
+.sidebar-sub-items button.active {
+  color: #fff;
+  opacity: 1;
+  padding-left: 8px; 
+}
+
+.sidebar-pais-label span {
+  transition: transform 0.3s ease;
+}
+
+.sidebar-pais-label.active span {
+  transform: rotate(180deg); 
   color: #e50914;
 }
-
