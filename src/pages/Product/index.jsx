@@ -31,6 +31,7 @@ export function ProductPage() {
   const [nomePersonalizado, setNomePersonalizado] = useState('');
   const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
   const [freteEscolhido, setFreteEscolhido] = useState(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const carouselRef = useRef(null);
 
@@ -130,6 +131,9 @@ export function ProductPage() {
     );
   }, []);
 
+  const openLightbox = () => setIsLightboxOpen(true);
+  const closeLightbox = () => setIsLightboxOpen(false);
+
   useEffect(() => {
     setLoading(true);
     setProduto(null);
@@ -217,12 +221,15 @@ export function ProductPage() {
 
           <div
             className="product-image-large"
+            onClick={openLightbox}
             onMouseMove={(e) => {
-              const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-              const x = ((e.clientX - left) / width) * 100;
-              const y = ((e.clientY - top) / height) * 100;
-              const img = e.currentTarget.querySelector('img');
-              if (img) img.style.transformOrigin = `${x}% ${y}%`;
+              if (window.innerWidth > 768) {
+                const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+                const x = ((e.clientX - left) / width) * 100;
+                const y = ((e.clientY - top) / height) * 100;
+                const img = e.currentTarget.querySelector('img');
+                if (img) img.style.transformOrigin = `${x}% ${y}%`;
+              }
             }}
             onMouseLeave={(e) => {
               const img = e.currentTarget.querySelector('img');
@@ -268,7 +275,7 @@ export function ProductPage() {
                   </button>
                 ))
               ) : (
-                <p style={{ color: '#A0A0A0', fontSize: '0.9rem' }}>Tamanho único ou indisponível</p>
+                <p className="no-sizes-msg">Tamanho único ou indisponível</p>
               )}
             </div>
           </div>
@@ -416,6 +423,18 @@ export function ProductPage() {
           )}
         </div>
       </section>
+
+      {isLightboxOpen && (
+        <div className="lightbox" onClick={closeLightbox}>
+          <span className="lightbox-close">&times;</span>
+          <img
+            src={imagemPrincipal}
+            alt={produto.title}
+            className="lightbox-image"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

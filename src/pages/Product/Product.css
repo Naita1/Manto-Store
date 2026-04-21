@@ -90,6 +90,7 @@
   position: relative;
   aspect-ratio: 4 / 5;
   width: 100%;
+  cursor: pointer;
 }
 
 .product-image-large img {
@@ -97,19 +98,19 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  cursor: zoom-in;
   transition: transform 0.2s ease;
 }
 
-.product-image-large:hover img {
-  transform: scale(2);
+@media (min-width: 769px) {
+  .product-image-large:hover img {
+    transform: scale(2);
+  }
 }
 
 .product-info-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  width: 100%; 
 }
 
 .product-stars {
@@ -159,8 +160,8 @@
 }
 
 .size-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, auto));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.8rem;
   justify-content: left;
   margin-bottom: 2.5rem;
@@ -176,7 +177,6 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: all var(--transition);
-  text-align: center;
   white-space: nowrap;
 }
 
@@ -190,6 +190,14 @@
   border-color: var(--primary-color);
   color: var(--text-color);
   box-shadow: 0 4px 12px rgba(178, 34, 34, 0.4);
+}
+
+.no-sizes-msg {
+  text-align: center;
+  width: 100%;
+  margin: 0.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .shipping-box {
@@ -551,6 +559,44 @@
   color: var(--text-color);
 }
 
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.lightbox-image {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  cursor: zoom-in;
+  touch-action: pinch-zoom;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 2.5rem;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s;
+  z-index: 1001;
+}
+
+.lightbox-close:hover {
+  transform: scale(1.2);
+}
+
 @media (max-width: 992px) {
   .product-top-section {
     flex-direction: column;
@@ -570,28 +616,27 @@
     width: 80px;
     height: 80px;
   }
-
-  .product-image-large:hover img {
-    transform: scale(1.08);
-  }
 }
 
 @media (max-width: 768px) {
   .carousel-wrapper {
     flex-direction: column;
   }
+
   .related-carousel {
     width: 100%;
     padding-left: 1rem;
     padding-right: 1rem;
   }
+
   .carousel-arrow {
-    position: static;
-    margin: 0.5rem;
+    display: none;
   }
+
   .size-buttons {
     gap: 0.7rem;
   }
+
   .size-btn {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
@@ -599,22 +644,6 @@
 }
 
 @media (max-width: 576px) {
-  .size-buttons {
-    justify-content: left;
-    gap: 0.6rem;
-  }
-
-  .size-buttons {
-    grid-template-columns: repeat(auto-fit, minmax(75px, auto));
-    gap: 0.6rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .size-btn {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.85rem;
-  }
-
   .product-page-container {
     padding: 1rem;
   }
@@ -642,6 +671,18 @@
     height: 60px;
   }
 
+  .size-buttons {
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .size-btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    min-width: 70px;
+    text-align: center;
+  }
+
   .shipping-input-group {
     flex-direction: column;
   }
@@ -662,6 +703,12 @@
   .btn-buy-now {
     font-size: 0.9rem;
   }
+
+  .lightbox-close {
+    top: 10px;
+    right: 20px;
+    font-size: 2rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -679,12 +726,12 @@
   }
 
   .size-buttons {
-    grid-template-columns: repeat(auto-fit, minmax(70px, auto));
     gap: 0.5rem;
   }
 
   .size-btn {
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
+    min-width: 60px;
   }
 }
