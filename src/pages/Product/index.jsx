@@ -1,43 +1,52 @@
-import { doc, getDoc, collection, query, limit, getDocs, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, getDocs, updateDoc, setDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
-
-import { useAuth } from '../../contexts/UseAuth'; 
-import { db } from '../../services/firebase'; 
-
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../../contexts/UseAuth';
+import { db } from '../../services/firebase';
 import toast from 'react-hot-toast';
-
 import { ShippingCalculator } from '../../components/ShippingCalculator';
 import './Product.css';
+
+const fallbackImage = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
+
+const accordionsData = [
+  { id: 1, title: "DESCRIÇÃO", contentKey: "description", fallback: "Nenhuma descrição informada para este produto." },
+  { id: 2, title: "TABELA DE MEDIDAS", content: "P: 50x70cm | M: 52x72cm | G: 54x74cm | GG: 56x76cm" },
+  { id: 3, title: "AVALIAÇÕES", content: "Nenhuma avaliação no momento." },
+  { id: 4, title: "DÚVIDAS SOBRE O PRODUTO", content: "Para personalizar, clique no botão 'PERSONALIZE DE GRAÇA'." }
+];
 
 export function ProductPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const [produto, setProduto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imagemPrincipal, setImagemPrincipal] = useState('');
   const [accordionsAbertos, setAccordionsAbertos] = useState([]);
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
   const [produtosRecomendados, setProdutosRecomendados] = useState([]);
-
   const [querPersonalizar, setQuerPersonalizar] = useState(false);
   const [nomePersonalizado, setNomePersonalizado] = useState('');
   const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
-  
+  const [freteEscolhido, setFreteEscolhido] = useState(null);
+
   const carouselRef = useRef(null);
 
-  const [freteEscolhido, setFreteEscolhido] = useState(null);
-  
-  const fallbackImage = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
+  const listaImagens = produto?.image && Array.isArray(produto.image) && produto.image.length > 0
+    ? produto.image
+    : [fallbackImage];
 
-  const handleShippingChange = (dadosFrete) => {
+  const tamanhosDisponiveis = produto?.sizes && Array.isArray(produto.sizes)
+    ? produto.sizes
+    : [];
+
+  const handleShippingChange = useCallback((dadosFrete) => {
     setFreteEscolhido(dadosFrete);
-    console.log("Frete selecionado para o carrinho:", dadosFrete);
-  };
+  }, []);
 
-  const handleAddToCart = async (redirect = false) => {
+  const handleAddToCart = useCallback(async (redirect = false) => {
     if (!user) {
       toast.error("Você precisa estar logado para adicionar itens ao carrinho!");
       navigate('/login');
@@ -51,7 +60,7 @@ export function ProductPage() {
 
     if (!freteEscolhido) {
       toast.error('Por favor, calcule e selecione uma opção de frete antes de continuar.');
-      return; 
+      return;
     }
 
     if (querPersonalizar && (!nomePersonalizado || !numeroPersonalizado)) {
@@ -62,7 +71,7 @@ export function ProductPage() {
     try {
       const cartRef = doc(db, 'carrinhos', user.uid);
       const cartSnap = await getDoc(cartRef);
-      
+
       const novoItem = {
         productId: id,
         title: produto.title,
@@ -82,10 +91,8 @@ export function ProductPage() {
         const itemIndex = items.findIndex(item => {
           const mesmoProduto = item.productId === novoItem.productId;
           const mesmoTamanho = item.size === novoItem.size;
-          
           const formatarPers = (p) => p ? `${p.nome}-${p.numero}` : 'nenhuma';
           const mesmaPersonalizacao = formatarPers(item.personalizacao) === formatarPers(novoItem.personalizacao);
-
           return mesmoProduto && mesmoTamanho && mesmaPersonalizacao;
         });
 
@@ -95,29 +102,33 @@ export function ProductPage() {
           items.push(novoItem);
         }
 
-        await updateDoc(cartRef, { items: items });
-
+        await updateDoc(cartRef, { items });
       } else {
         await setDoc(cartRef, { items: [novoItem] });
       }
 
       if (redirect) {
-        navigate('/cart'); 
+        navigate('/cart');
       } else {
         toast.success("Produto adicionado ao manto-carrinho!");
       }
-
     } catch (error) {
       console.error("Erro ao adicionar ao carrinho:", error);
       toast.error("Erro ao salvar no banco de dados.");
     }
-  };
+  }, [user, tamanhosDisponiveis, tamanhoSelecionado, freteEscolhido, querPersonalizar, nomePersonalizado, numeroPersonalizado, produto, imagemPrincipal, id, navigate]);
 
-  const scrollCarousel = (offset) => {
+  const scrollCarousel = useCallback((offset) => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({ left: offset, behavior: 'smooth' });
     }
-  };
+  }, []);
+
+  const toggleAccordion = useCallback((index) => {
+    setAccordionsAbertos(prev =>
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+    );
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -125,9 +136,9 @@ export function ProductPage() {
     setTamanhoSelecionado('');
     setQuerPersonalizar(false);
     setNomePersonalizado('');
-    setNumeroPersonalizado('');    
-    
-    async function buscarProduto() {
+    setNumeroPersonalizado('');
+
+    const buscarProduto = async () => {
       try {
         const docRef = doc(db, 'produtos', id);
         const docSnap = await getDoc(docRef);
@@ -135,44 +146,38 @@ export function ProductPage() {
         if (docSnap.exists()) {
           const dados = docSnap.data();
           setProduto(dados);
-          
-          if (dados.image && Array.isArray(dados.image) && dados.image.length > 0) {
-            setImagemPrincipal(dados.image[0]);
-          } else {
-            setImagemPrincipal(fallbackImage);
-          }
+          const primeiraImagem = dados.image?.[0] || fallbackImage;
+          setImagemPrincipal(primeiraImagem);
         } else {
-          console.log("Nenhum produto encontrado!");
+          console.log("Produto não encontrado");
+          setProduto(null);
         }
       } catch (error) {
         console.error("Erro ao buscar detalhes do produto:", error);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    async function buscarProdutosRelacionados() {
+    const buscarProdutosRelacionados = async () => {
       try {
-        // Aumentado o limite de busca para 20
         const q = query(collection(db, 'produtos'), limit(20));
         const querySnapshot = await getDocs(q);
-        
         const produtos = [];
-        querySnapshot.forEach((doc) => {
+
+        querySnapshot.forEach(doc => {
           if (doc.id !== id) {
             produtos.push({ id: doc.id, ...doc.data() });
           }
         });
 
-        // Pegando 10 itens para criar um bom efeito de carrossel
         const embaralhados = produtos.sort(() => 0.5 - Math.random()).slice(0, 10);
         setProdutosRecomendados(embaralhados);
-        
       } catch (error) {
         console.error("Erro ao buscar produtos recomendados:", error);
       }
-    }
-    
+    };
+
     if (id) {
       buscarProduto();
       buscarProdutosRelacionados();
@@ -182,48 +187,15 @@ export function ProductPage() {
   if (loading) return <div className="loading-msg">Carregando Manto...</div>;
   if (!produto) return <div className="loading-msg">Produto não encontrado.</div>;
 
-  const listaImagens = produto.image && Array.isArray(produto.image) && produto.image.length > 0 
-    ? produto.image 
-    : [fallbackImage];
-
-  const tamanhosDisponiveis = produto.sizes && Array.isArray(produto.sizes) 
-    ? produto.sizes 
-    : [];
-
-  const accordionsData = [
-    { 
-      id: 1, 
-      title: "DESCRIÇÃO", 
-      content: produto.description || "Nenhuma descrição informada para este produto." 
-    },
-    { 
-      id: 2, 
-      title: "TABELA DE MEDIDAS", 
-      content: "P: 50x70cm | M: 52x72cm | G: 54x74cm | GG: 56x76cm" 
-    },
-    { 
-      id: 3, 
-      title: "AVALIAÇÕES", 
-      content: "Nenhuma avaliação no momento." 
-    },
-    { 
-      id: 4, 
-      title: "DÚVIDAS SOBRE O PRODUTO", 
-      content: "Para personalizar, clique no botão 'PERSONALIZE DE GRAÇA'." 
+  const getAccordionContent = (item) => {
+    if (item.contentKey === "description") {
+      return produto.description || item.fallback;
     }
-  ];
-
-  const toggleAccordion = (index) => {
-    setAccordionsAbertos((prev) => 
-      prev.includes(index) 
-        ? prev.filter((item) => item !== index) 
-        : [...prev, index]                    
-    );
+    return item.content;
   };
 
   return (
     <div className="product-page-container">
-      
       <nav className="breadcrumbs">
         <a href="/">PÁGINA INICIAL</a> / <span>{produto.title}</span>
       </nav>
@@ -232,24 +204,23 @@ export function ProductPage() {
         <div className="product-gallery">
           <div className="product-thumbnails">
             {listaImagens.map((img, index) => (
-              <img 
-                key={index} 
-                src={img} 
-                alt={`${produto.title} - Miniatura ${index + 1}`} 
+              <img
+                key={index}
+                src={img}
+                alt={`${produto.title} - Miniatura ${index + 1}`}
                 className={imagemPrincipal === img ? 'thumb-active' : ''}
                 onClick={() => setImagemPrincipal(img)}
-                onError={(e) => { e.target.src = fallbackImage }}
+                onError={(e) => { e.target.src = fallbackImage; }}
               />
             ))}
           </div>
 
-          <div 
+          <div
             className="product-image-large"
             onMouseMove={(e) => {
               const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
               const x = ((e.clientX - left) / width) * 100;
               const y = ((e.clientY - top) / height) * 100;
-              
               const img = e.currentTarget.querySelector('img');
               if (img) img.style.transformOrigin = `${x}% ${y}%`;
             }}
@@ -258,10 +229,10 @@ export function ProductPage() {
               if (img) img.style.transformOrigin = 'center center';
             }}
           >
-            <img 
-              src={imagemPrincipal} 
-              alt={produto.title || "Produto"} 
-              onError={(e) => { e.target.src = fallbackImage }}
+            <img
+              src={imagemPrincipal}
+              alt={produto.title || "Produto"}
+              onError={(e) => { e.target.src = fallbackImage; }}
             />
           </div>
         </div>
@@ -273,22 +244,23 @@ export function ProductPage() {
             </div>
             <h1 className="product-title-large">{produto.title}</h1>
           </div>
-          
+
           <div className="product-price-box">
             <p className="product-price-large">
-              {produto.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              {produto.price?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'R$ 0,00'}
             </p>
             <p className="product-price-installments">
               EM ATÉ 12X DE {(produto.price / 12).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} SEM JUROS
             </p>
           </div>
+
           <div className="product-sizes">
             <p className="section-label">SELECIONE O TAMANHO</p>
             <div className="size-buttons">
               {tamanhosDisponiveis.length > 0 ? (
                 tamanhosDisponiveis.map(size => (
-                  <button 
-                    key={size} 
+                  <button
+                    key={size}
                     className={`size-btn ${tamanhoSelecionado === size ? 'active' : ''}`}
                     onClick={() => setTamanhoSelecionado(size)}
                   >
@@ -300,46 +272,52 @@ export function ProductPage() {
               )}
             </div>
           </div>
-             <ShippingCalculator onShippingSelected={handleShippingChange} />
+
+          <ShippingCalculator onShippingSelected={handleShippingChange} />
+
           <div className="action-buttons">
-            <button 
+            <button
               className="btn-personalize"
-              onClick={() => setQuerPersonalizar(!querPersonalizar)}
+              onClick={() => setQuerPersonalizar(prev => !prev)}
             >
               PERSONALIZE DE GRAÇA
             </button>
 
             {querPersonalizar && (
               <div className="personalize-inputs-container">
-                <input 
-                  type="text" 
-                  placeholder="NOME (Ex: RONALDO)" 
+                <input
+                  type="text"
+                  placeholder="NOME (Ex: RONALDO)"
                   value={nomePersonalizado}
                   onChange={(e) => setNomePersonalizado(e.target.value.toUpperCase())}
                   maxLength="15"
                   className="personalize-input input-nome"
                 />
-                <input 
-                  type="text" 
-                  placeholder="Nº" 
+                <input
+                  type="text"
+                  placeholder="Nº"
                   value={numeroPersonalizado}
-                  onChange={(e) => setNumeroPersonalizado(e.target.value.replace(/\D/g, ''))} 
+                  onChange={(e) => setNumeroPersonalizado(e.target.value.replace(/\D/g, ''))}
                   maxLength="2"
                   className="personalize-input input-numero"
                 />
               </div>
             )}
-            
-            <div className="btn-buy-container">
-              <button 
-                className="btn-add-cart"
-                onClick={() => handleAddToCart(false)}                
-                title="Adicionar ao Carrinho"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-              </button>
 
-              <button 
+            <div className="btn-buy-container">
+              <button
+                className="btn-add-cart"
+                onClick={() => handleAddToCart(false)}
+                title="Adicionar ao Carrinho"
+                aria-label="Adicionar ao carrinho"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+              </button>
+              <button
                 className="btn-buy-now"
                 onClick={() => handleAddToCart(true)}
               >
@@ -353,22 +331,26 @@ export function ProductPage() {
       <section className="product-bottom-section">
         {accordionsData.map((item, index) => {
           const isOpen = accordionsAbertos.includes(index);
+          const content = getAccordionContent(item);
 
           return (
             <div key={item.id} className="accordion-wrapper">
-              <button 
-                className={`accordion-bar ${isOpen ? 'active' : ''}`} 
+              <button
+                className={`accordion-bar ${isOpen ? 'active' : ''}`}
                 onClick={() => toggleAccordion(index)}
+                aria-expanded={isOpen}
               >
                 <span>{item.title}</span>
                 <span className={`accordion-icon ${isOpen ? 'open' : ''}`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
                 </span>
               </button>
-              
               <div className={`accordion-content ${isOpen ? 'show' : ''}`}>
                 <div className="accordion-inner">
-                  <p style={{ whiteSpace: 'pre-line' }}>{item.content}</p>
+                  <p style={{ whiteSpace: 'pre-line' }}>{content}</p>
                 </div>
               </div>
             </div>
@@ -378,40 +360,40 @@ export function ProductPage() {
 
       <section className="related-products-section">
         <h3 className="related-title">VOCÊ TAMBÉM PODE GOSTAR</h3>
-        
-        <div className="carousel-wrapper"> {/* Usando a mesma estrutura Grid da Home */}
-          
+        <div className="carousel-wrapper">
           {produtosRecomendados.length > 0 && (
-            <button className="carousel-btn left" onClick={() => scrollCarousel(-300)}>
+            <button
+              className="carousel-arrow"
+              onClick={() => scrollCarousel(-300)}
+              aria-label="Produtos anteriores"
+            >
               &#10094;
             </button>
           )}
 
-          <div className="related-carousel product-row" ref={carouselRef}>
+          <div className="related-carousel" ref={carouselRef}>
             {produtosRecomendados.length > 0 ? (
               produtosRecomendados.map((item) => {
-                const imagemItem = item.image && Array.isArray(item.image) && item.image.length > 0 
-                  ? item.image[0] 
-                  : fallbackImage;
-
+                const imagemItem = item.image?.[0] || fallbackImage;
                 return (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
                     className="related-card"
-                    onClick={() => navigate(`/produto/${item.id}`)} 
+                    onClick={() => navigate(`/produto/${item.id}`)}
                   >
                     <div className="related-card-img">
-                      <img 
-                        src={imagemItem} 
-                        alt={item.title || "Produto Recomendado"} 
-                        onError={(e) => { e.target.src = fallbackImage }}
+                      <img
+                        src={imagemItem}
+                        alt={item.title || "Produto Recomendado"}
+                        onError={(e) => { e.target.src = fallbackImage; }}
+                        loading="lazy"
                       />
                     </div>
                     <div className="related-card-info">
                       <p className="related-card-name">{item.title}</p>
                       <p className="related-card-price">
-                        {item.price 
-                          ? item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+                        {item.price
+                          ? item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
                           : 'R$ 0,00'}
                       </p>
                     </div>
@@ -424,13 +406,16 @@ export function ProductPage() {
           </div>
 
           {produtosRecomendados.length > 0 && (
-             <button className="carousel-btn right" onClick={() => scrollCarousel(300)}>
-               &#10095;
-             </button>
+            <button
+              className="carousel-arrow"
+              onClick={() => scrollCarousel(300)}
+              aria-label="Próximos produtos"
+            >
+              &#10095;
+            </button>
           )}
         </div>
       </section>
-
     </div>
   );
 }
