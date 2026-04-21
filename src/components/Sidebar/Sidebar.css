@@ -1,19 +1,21 @@
 .sidebar-container {
   position: fixed;
   top: 0;
-  left: -300px; 
+  left: 0; 
   width: 300px;
   height: 100vh;
   background-color: #0d0d0d;
   z-index: 2000;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-105%); 
+  will-change: transform;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 10px 0 30px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
 }
 
 .sidebar-container.aberta {
-  left: 0; 
+  transform: translateX(0); 
 }
 
 .sidebar-header {
@@ -21,7 +23,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #1a1a1a;
 }
 
 .sidebar-title {
@@ -37,12 +39,22 @@
   color: #666;
   font-size: 1.5rem;
   cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.btn-fechar-sidebar:hover {
+  color: #e50914;
 }
 
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
+  scrollbar-width: none;
+}
+
+.sidebar-content::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-main-btn {
@@ -53,49 +65,47 @@
   color: #fff;
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   cursor: pointer;
-  transition: 0.3s;
+  transition: color 0.3s ease;
 }
 
 .sidebar-main-btn.active { color: #e50914; }
 
-.sidebar-group { margin-bottom: 1rem; }
+.sidebar-group { 
+  margin-bottom: 0.5rem; 
+  border-bottom: 1px solid #151515;
+}
 
 .sidebar-pais-label {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   color: #aaa;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  padding: 10px 0;
-  transition: 0.3s;
+  padding: 15px 0;
+  transition: color 0.3s ease;
   text-transform: uppercase;
 }
 
 .sidebar-pais-label:hover, .sidebar-pais-label.active { color: #fff; }
 
 .sidebar-sub-items {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0; 
-  transform: translateY(-5px); 
-  display: flex;
-  flex-direction: column;
-  padding-left: 1.2rem;
-  transition: 
-    max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.4s ease,
-    transform 0.4s ease,
-    margin 0.3s ease;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-sub-items.expandido {
-  max-height: 1000px; 
-  opacity: 1;
-  transform: translateY(0); 
-  margin-bottom: 1.5rem;
-  margin-top: 0.5rem;
+  grid-template-rows: 1fr;
+}
+
+.sidebar-sub-wrapper {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-left: 1.2rem;
 }
 
 .sidebar-sub-items button {
@@ -106,23 +116,27 @@
   padding: 10px 0;
   cursor: pointer;
   font-size: 0.9rem;
-  position: relative;
   transition: all 0.3s ease;
-  opacity: 0.8;
 }
 
 .sidebar-sub-items button:hover, 
 .sidebar-sub-items button.active {
   color: #fff;
-  opacity: 1;
-  padding-left: 8px; 
+  padding-left: 10px; 
+}
+
+.btn-ver-todos {
+  font-weight: bold;
+  font-style: italic;
+  color: #e50914 !important;
 }
 
 .sidebar-pais-label span {
+  font-family: monospace;
+  font-size: 1.2rem;
   transition: transform 0.3s ease;
 }
 
 .sidebar-pais-label.active span {
-  transform: rotate(180deg); 
   color: #e50914;
 }
