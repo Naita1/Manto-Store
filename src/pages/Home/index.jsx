@@ -4,11 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { ProductCard } from '../../components/ProductCard';
 import { Sidebar } from '../../components/Sidebar'; 
 import { Button } from '../../components/Button'; 
-import banner from '../../assets/Manto.png'
+import banner from '../../assets/Manto.png';
 import './Home.css';
 
-
-function ProductSection({ title, produtos }) {
+function ProductSection({ title, produtos, isGrid = false }) {
   const carouselRef = useRef(null);
 
   const scroll = (scrollOffset) => {
@@ -18,15 +17,17 @@ function ProductSection({ title, produtos }) {
   };
 
   return (
-    <section className="showcase-section">
+    <section className={`showcase-section ${isGrid ? 'grid-mode' : ''}`}>
       <h2 className="showcase-title">{title}</h2>
       
       <div className="carousel-wrapper">
-        <button className="carousel-btn left" onClick={() => scroll(-400)}>&#10094;</button>
+        {!isGrid && (
+          <button className="carousel-btn left" onClick={() => scroll(-400)}>&#10094;</button>
+        )}
         
         <div className="product-row" ref={carouselRef}>
           {produtos.length === 0 ? (
-            <p style={{ color: '#FFF' }}>Nenhum produto encontrado...</p>
+            <p style={{ color: '#FFF', padding: '20px' }}>Nenhum produto encontrado...</p>
           ) : (
             produtos.map(produto => (
               <ProductCard 
@@ -40,7 +41,9 @@ function ProductSection({ title, produtos }) {
           )}
         </div>
 
-        <button className="carousel-btn right" onClick={() => scroll(400)}>&#10095;</button>
+        {!isGrid && (
+          <button className="carousel-btn right" onClick={() => scroll(400)}>&#10095;</button>
+        )}
       </div>
     </section>
   );
@@ -98,56 +101,58 @@ export function HomePage() {
   return (
     <div className="home-container">
       <Sidebar 
-          menuFiltros={menuFiltros}
-          filtroPais={filtroPais}
-          filtroTime={filtroTime}
-          aberta={sidebarAberta} 
-          setAberta={setSidebarAberta} 
-          aoFiltrar={(pais, time = null) => {
-            setFiltroPais(pais);
-            setFiltroTime(time);
-            setSidebarAberta(false);
-            if(window.innerWidth < 768) setSidebarAberta(false);
-          }}
-        />
-      <main className={`main-content ${sidebarAberta ? 'menu-ativo' : ''}`}>
-      <section
-        className="home-banner"
-        style={{ 
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url(${banner})` 
+        menuFiltros={menuFiltros}
+        filtroPais={filtroPais}
+        filtroTime={filtroTime}
+        aberta={sidebarAberta} 
+        setAberta={setSidebarAberta} 
+        aoFiltrar={(pais, time = null) => {
+          setFiltroPais(pais);
+          setFiltroTime(time);
+          setSidebarAberta(false);
+          if(window.innerWidth < 768) setSidebarAberta(false);
         }}
+      />
+      
+      <main className={`main-content ${sidebarAberta ? 'menu-ativo' : ''}`}>
+        <section
+          className="home-banner"
+          style={{ 
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url(${banner})` 
+          }}
         ></section>
         
-      <div className="filter-bar">
-        <Button 
-          className="btn-filtros" 
-          onClick={() => setSidebarAberta(true)}
-        >
-          <span className="icon">☰</span> FILTRAR PRODUTOS
-        </Button>
-      </div>
+        <div className="filter-bar">
+          <Button 
+            className="btn-filtros" 
+            onClick={() => setSidebarAberta(true)}
+          >
+            <span className="icon">☰</span> FILTRAR PRODUTOS
+          </Button>
+        </div>
+
         <div className="products-container">  
-
-      <ProductSection 
-        title={filtroPais === 'Todos' ? "NOVIDADES DA LOJA" : (filtroTime || filtroPais).toUpperCase()} 
-        produtos={produtos} 
-      />
-
-      {filtroPais === 'Todos' && (
-        <>
           <ProductSection 
-            title="MAIS VENDIDOS" 
-            produtos={[...produtos].reverse()} 
+            title={filtroPais === 'Todos' ? "NOVIDADES DA LOJA" : (filtroTime || filtroPais).toUpperCase()} 
+            produtos={produtos} 
+            isGrid={filtroPais !== 'Todos'} 
           />
 
-          <ProductSection 
-            title="PROMOÇÕES IMPERDÍVEIS" 
-            produtos={produtos.slice(0, 5)} 
-          />
-        </>
-      )}
-          </div>
-        </main>
+          {filtroPais === 'Todos' && (
+            <>
+              <ProductSection 
+                title="MAIS VENDIDOS" 
+                produtos={[...produtos].reverse()} 
+              />
+
+              <ProductSection 
+                title="PROMOÇÕES IMPERDÍVEIS" 
+                produtos={produtos.slice(0, 5)} 
+              />
+            </>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
