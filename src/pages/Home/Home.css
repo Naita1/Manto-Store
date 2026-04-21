@@ -90,6 +90,70 @@
   display: none;
 }
 
+.home-page-wrapper {
+  position: relative;
+  min-height: 100vh;
+}
+
+.store-layout {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1; 
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.products-container {
+  padding-bottom: 4rem;
+}
+
+.btn-filtros {
+  position: fixed;
+  top: 100px; 
+  left: 20px;
+  z-index: 100;
+  background: rgba(26, 26, 26, 0.85); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border-radius: 50px; 
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-filtros:hover {
+  background: #e50914;
+  border-color: #e50914;
+  transform: translateY(-3px); 
+  box-shadow: 0 8px 25px rgba(229, 9, 20, 0.35);
+}
+
+.btn-filtros .icon {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.main-content {
+  width: 100%;
+  transition: padding-left 0.4s ease;
+}
+
 @media screen and (max-width: 768px) {
   .showcase-section {
     padding: 2rem 0 1rem 0;

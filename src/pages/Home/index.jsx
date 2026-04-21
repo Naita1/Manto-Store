@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../services/firebase'; 
+import { useState, useEffect, useRef } from 'react';
 import { ProductCard } from '../../components/ProductCard';
-import './Home.css';
+import { Sidebar } from '../../components/Sidebar'; 
+import { Button } from '../../components/Button'; 
 import banner from '../../assets/Manto.png'
+import './Home.css';
+
 
 function ProductSection({ title, produtos }) {
   const carouselRef = useRef(null);
@@ -19,13 +22,11 @@ function ProductSection({ title, produtos }) {
       <h2 className="showcase-title">{title}</h2>
       
       <div className="carousel-wrapper">
-        <button className="carousel-btn left" onClick={() => scroll(-400)}>
-          &#10094;
-        </button>
+        <button className="carousel-btn left" onClick={() => scroll(-400)}>&#10094;</button>
         
         <div className="product-row" ref={carouselRef}>
           {produtos.length === 0 ? (
-            <p style={{ color: '#FFF' }}>Carregando produtos...</p>
+            <p style={{ color: '#FFF' }}>Nenhum produto encontrado...</p>
           ) : (
             produtos.map(produto => (
               <ProductCard 
@@ -39,9 +40,7 @@ function ProductSection({ title, produtos }) {
           )}
         </div>
 
-        <button className="carousel-btn right" onClick={() => scroll(400)}>
-          &#10095;
-        </button>
+        <button className="carousel-btn right" onClick={() => scroll(400)}>&#10095;</button>
       </div>
     </section>
   );
@@ -49,49 +48,99 @@ function ProductSection({ title, produtos }) {
 
 export function HomePage() {
   const [produtos, setProdutos] = useState([]);
+  const [menuFiltros, setMenuFiltros] = useState({});
+  const [filtroPais, setFiltroPais] = useState('Todos');
+  const [filtroTime, setFiltroTime] = useState(null);
+  const [sidebarAberta, setSidebarAberta] = useState(false);
+
+  useEffect(() => {
+    async function gerarMenu() {
+      const querySnapshot = await getDocs(collection(db, 'produtos'));
+      const novoMenu = {};
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const pais = data.category;
+        const time = data.team;
+
+        if (pais) {
+          if (!novoMenu[pais]) novoMenu[pais] = [];
+          if (time && !novoMenu[pais].includes(time)) {
+            novoMenu[pais].push(time);
+          }
+        }
+      });
+      setMenuFiltros(novoMenu);
+    }
+    gerarMenu();
+  }, []);
 
   useEffect(() => {
     async function buscarProdutos() {
-      try {
-        const produtosRef = collection(db, 'produtos');
-        const snapshot = await getDocs(produtosRef);
-        
-        const listaProdutos = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data() 
-        }));
-        setProdutos(listaProdutos);
-      } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
-      }
-    }
+      const produtosRef = collection(db, 'produtos');
+      let q = produtosRef;
 
+      if (filtroPais !== 'Todos') {
+        if (filtroTime) {
+          q = query(produtosRef, where('category', '==', filtroPais), where('team', '==', filtroTime));
+        } else {
+          q = query(produtosRef, where('category', '==', filtroPais));
+        }
+      }
+
+      const snapshot = await getDocs(q);
+      const listaProdutos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setProdutos(listaProdutos);
+    }
     buscarProdutos();
-  }, []);
+  }, [filtroPais, filtroTime]);
 
   return (
     <div className="home-container">
+      <Sidebar 
+          menuFiltros={menuFiltros}
+          filtroPais={filtroPais}
+          filtroTime={filtroTime}
+          aberta={sidebarAberta} 
+          setAberta={setSidebarAberta} 
+          aoFiltrar={(pais, time = null) => {
+            setFiltroPais(pais);
+            setFiltroTime(time);
+            if(window.innerWidth < 768) setSidebarAberta(false);
+          }}
+        />
+      <main className={`main-content ${sidebarAberta ? 'menu-ativo' : ''}`}>
       <section
         className="home-banner"
         style={{ 
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url(${banner})` 
         }}
-      ></section>
-
+        ></section>
+      <Button 
+        className="btn-filtros" 
+        onClick={() => setSidebarAberta(true)}
+      >
+        &#9776; Filtros
+      </Button>
       <ProductSection 
-        title="NOVIDADES DA LOJA" 
+        title={filtroPais === 'Todos' ? "NOVIDADES DA LOJA" : (filtroTime || filtroPais).toUpperCase()} 
         produtos={produtos} 
       />
 
-      <ProductSection 
-        title="MAIS VENDIDOS" 
-        produtos={[...produtos].reverse()} 
-      />
+      {filtroPais === 'Todos' && (
+        <>
+          <ProductSection 
+            title="MAIS VENDIDOS" 
+            produtos={[...produtos].reverse()} 
+          />
 
-      <ProductSection 
-        title="PROMOÇÕES IMPERDÍVEIS" 
-        produtos={produtos.slice(0, 5)} 
-      />
+          <ProductSection 
+            title="PROMOÇÕES IMPERDÍVEIS" 
+            produtos={produtos.slice(0, 5)} 
+          />
+        </>
+      )}
+        </main>
     </div>
   );
 }

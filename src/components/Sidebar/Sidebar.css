@@ -1,0 +1,115 @@
+.sidebar-container {
+  position: fixed;
+  top: 0;
+  left: -300px; 
+  width: 300px;
+  height: 100vh;
+  background-color: #0d0d0d;
+  z-index: 2000;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-container.aberta {
+  left: 0; 
+}
+
+.sidebar-header {
+  padding: 2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #222;
+}
+
+.sidebar-title {
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.btn-fechar-sidebar {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.sidebar-main-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.sidebar-main-btn.active { color: #e50914; }
+
+.sidebar-group { margin-bottom: 1rem; }
+
+.sidebar-pais-label {
+  display: flex;
+  justify-content: space-between;
+  color: #aaa;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 10px 0;
+  transition: 0.3s;
+  text-transform: uppercase;
+}
+
+.sidebar-pais-label:hover, .sidebar-pais-label.active { color: #fff; }
+
+.sidebar-sub-items {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  padding-left: 1rem;
+}
+
+.sidebar-sub-items.expandido {
+  max-height: 500px; 
+  margin-bottom: 1rem;
+}
+
+.sidebar-sub-items button {
+  background: none;
+  border: none;
+  color: #666;
+  text-align: left;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.sidebar-sub-items button:hover, .sidebar-sub-items button.active {
+  color: #e50914;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  z-index: 1500;
+  backdrop-filter: blur(4px);
+}
