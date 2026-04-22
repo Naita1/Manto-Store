@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ChatButton } from './components/ChatButton';
 import { Toast } from './components/Toast';
+import { Help } from './components/Help';
 
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
@@ -29,6 +30,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} /> 
             <Route path='/profile' element={<ProfilePage/>} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/help" element={<Help />} />
           </Routes>
 
           <Footer />
