@@ -79,9 +79,6 @@
   .product-price {
     font-size: 0.85rem; 
   }
-.product-card:hover .product-image-container img {
-    transform: scale(1); 
-  }
 
   .product-card:active {
     transform: scale(0.96); 
