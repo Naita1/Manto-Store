@@ -137,7 +137,7 @@
   }
 
   .results-grid {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr 1fr !important; /* Força 2 colunas no mobile */
     gap: 12px;
     row-gap: 24px;
   }

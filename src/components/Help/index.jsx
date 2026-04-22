@@ -82,7 +82,6 @@ export function Help() {
       <div className="help-content">
         <section className="help-section tracking-section">
           <h2>Rastreie seu Pedido</h2>
-          <p className="tracking-hint">Dica para teste: digite <strong>12345</strong> ou <strong>99999</strong></p>
           
           <form className="tracking-form" onSubmit={handleTrackOrder}>
             <input 
