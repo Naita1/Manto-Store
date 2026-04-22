@@ -19,7 +19,7 @@
 .help-content {
   display: flex;
   flex-direction: column;
-  gap: 3rem; 
+  gap: 3rem;
 }
 
 .help-section h2 {
@@ -31,6 +31,12 @@
   display: inline-block;
 }
 
+.tracking-hint {
+  font-size: 0.85rem;
+  color: #AAA;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}
 
 .tracking-form {
   display: flex;
@@ -66,10 +72,50 @@
   transition: background-color 0.3s;
 }
 
-.tracking-btn:hover {
+.tracking-btn:hover:not(:disabled) {
   background-color: #a71d1d;
 }
 
+.tracking-btn:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.tracking-result-card {
+  margin-top: 1.5rem;
+  background-color: #1A1A1A;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  animation: fadeIn 0.4s ease;
+}
+
+.tracking-status-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.tracking-info h3 {
+  color: #FFF;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+}
+
+.tracking-info p {
+  color: #CCC;
+  margin: 0.2rem 0;
+  font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .faq-list {
   display: flex;
@@ -144,7 +190,6 @@
   opacity: 1;
 }
 
-
 .contact-section p {
   color: #CCC;
   margin-bottom: 1.5rem;
@@ -216,7 +261,6 @@
 }
 
 
-
 @media (max-width: 768px) {
   .help-page-container {
     padding: 2rem 1rem;
@@ -227,7 +271,7 @@
   }
 
   .tracking-form {
-    flex-direction: column;
+    flex-direction: column; 
   }
 
   .tracking-btn {

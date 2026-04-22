@@ -3,7 +3,11 @@ import './Help.css';
 
 export function Help() {
   const [openFaq, setOpenFaq] = useState(null);
+  
+  // Estados para o Rastreio
   const [trackingCode, setTrackingCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [trackingResult, setTrackingResult] = useState(null);
 
   const faqs = [
     {
@@ -32,12 +36,42 @@ export function Help() {
     setOpenFaq(openFaq === id ? null : id);
   };
 
+  // Função para simular o rastreio (Mock Interativo)
   const handleTrackOrder = (e) => {
     e.preventDefault();
-    if (trackingCode) {
-      alert(`Simulação: Buscando informações do pedido ${trackingCode}... Em rota de entrega!`);
-      setTrackingCode('');
-    }
+    if (!trackingCode.trim()) return;
+
+    setIsLoading(true);
+    setTrackingResult(null);
+
+    // Simula o tempo de uma requisição (1.5 segundos)
+    setTimeout(() => {
+      const code = trackingCode.trim().toUpperCase();
+
+      if (code === '12345' || code === 'BR123') {
+        setTrackingResult({
+          status: 'Em rota de entrega',
+          date: 'Hoje, 08:45',
+          location: 'São Paulo, SP',
+          color: '#eab308' // Amarelo
+        });
+      } else if (code === '99999') {
+        setTrackingResult({
+          status: 'Pedido Entregue',
+          date: 'Ontem, 14:20',
+          location: 'Rio de Janeiro, RJ',
+          color: '#22c55e' // Verde
+        });
+      } else {
+        setTrackingResult({
+          status: 'Pedido em Separação',
+          date: 'Hoje, 10:00',
+          location: 'Centro de Distribuição',
+          color: '#3b82f6' // Azul
+        });
+      }
+      setIsLoading(false);
+    }, 1500);
   };
 
   return (
@@ -50,15 +84,31 @@ export function Help() {
       <div className="help-content">
         <section className="help-section tracking-section">
           <h2>Rastreie seu Pedido</h2>
+          <p className="tracking-hint">Dica para teste: digite <strong>12345</strong> ou <strong>99999</strong></p>
+          
           <form className="tracking-form" onSubmit={handleTrackOrder}>
             <input 
               type="text" 
               placeholder="Código de rastreio ou nº do pedido" 
               value={trackingCode}
               onChange={(e) => setTrackingCode(e.target.value)}
+              disabled={isLoading}
             />
-            <button type="submit" className="tracking-btn">Buscar</button>
+            <button type="submit" className="tracking-btn" disabled={isLoading}>
+              {isLoading ? 'Buscando...' : 'Buscar'}
+            </button>
           </form>
+
+          {trackingResult && (
+            <div className="tracking-result-card">
+              <div className="tracking-status-indicator" style={{ backgroundColor: trackingResult.color }}></div>
+              <div className="tracking-info">
+                <h3>{trackingResult.status}</h3>
+                <p><strong>Atualizado em:</strong> {trackingResult.date}</p>
+                <p><strong>Local:</strong> {trackingResult.location}</p>
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="help-section faq-section">
@@ -83,7 +133,7 @@ export function Help() {
 
         <section className="help-section contact-section">
           <h2>Conheça a Desenvolvedora</h2>
-          <p>Gostou do projeto? Conecte-se comigo nas redes profissionais!</p>
+          <p>Gostou do projeto? Conecte-se comigo nas redes!</p>
           
           <div className="contact-cards">
             
@@ -92,7 +142,7 @@ export function Help() {
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
               </svg>
               <h3>GitHub</h3>
-              <p>Veja meus códigos</p>
+              <p>Veja meus projetos</p>
             </a>
 
             <a href="https://www.linkedin.com/in/taina-cl-ribeiro/" target="_blank" rel="noopener noreferrer" className="contact-card link-card">
