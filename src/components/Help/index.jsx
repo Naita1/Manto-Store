@@ -4,7 +4,6 @@ import './Help.css';
 export function Help() {
   const [openFaq, setOpenFaq] = useState(null);
   
-  // Estados para o Rastreio
   const [trackingCode, setTrackingCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [trackingResult, setTrackingResult] = useState(null);
@@ -36,7 +35,6 @@ export function Help() {
     setOpenFaq(openFaq === id ? null : id);
   };
 
-  // Função para simular o rastreio (Mock Interativo)
   const handleTrackOrder = (e) => {
     e.preventDefault();
     if (!trackingCode.trim()) return;
@@ -44,7 +42,7 @@ export function Help() {
     setIsLoading(true);
     setTrackingResult(null);
 
-    // Simula o tempo de uma requisição (1.5 segundos)
+
     setTimeout(() => {
       const code = trackingCode.trim().toUpperCase();
 
@@ -53,21 +51,21 @@ export function Help() {
           status: 'Em rota de entrega',
           date: 'Hoje, 08:45',
           location: 'São Paulo, SP',
-          color: '#eab308' // Amarelo
+          color: '#eab308' 
         });
       } else if (code === '99999') {
         setTrackingResult({
           status: 'Pedido Entregue',
           date: 'Ontem, 14:20',
           location: 'Rio de Janeiro, RJ',
-          color: '#22c55e' // Verde
+          color: '#22c55e' 
         });
       } else {
         setTrackingResult({
           status: 'Pedido em Separação',
           date: 'Hoje, 10:00',
           location: 'Centro de Distribuição',
-          color: '#3b82f6' // Azul
+          color: '#3b82f6'
         });
       }
       setIsLoading(false);

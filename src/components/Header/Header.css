@@ -82,13 +82,19 @@
   height: 45px;
   border-radius: 50%;
   background-color: var(--primary-color);  
-  color: #FFF;
+  color: #FFF !important;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease, filter 0.2s ease;
+  text-decoration: none;
+}
+
+.icon-circle svg {
+  color: #FFF;
+  stroke: #FFF;
 }
 
 .icon-circle:hover {
