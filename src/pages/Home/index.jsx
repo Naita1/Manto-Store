@@ -1,6 +1,6 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom'; 
+import { useLocation, useNavigate } from 'react-router-dom'; 
 import { db } from '../../services/firebase'; 
 
 import { ProductCard } from '../../components/ProductCard';
@@ -12,7 +12,13 @@ import './Home.css';
 
 function ProductSection({ title, produtos, isGrid = false, veioDeFiltro = false, filtroTimeAtivo = null }) {
   const carouselRef = useRef(null);
+  const navigate = useNavigate();
 
+const handleViewAll = (titulo) => {
+    const year = titulo.match(/\d{4}/)?.[0] || "2026";
+    navigate(`/collection/${year}`);
+};
+  
   const scroll = (scrollOffset) => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({ left: scrollOffset, behavior: 'smooth' });
@@ -23,7 +29,11 @@ function ProductSection({ title, produtos, isGrid = false, veioDeFiltro = false,
     <section className={`showcase-section ${isGrid ? 'grid-mode' : ''}`}>
       <div className="section-header">
         <h2 className="showcase-title">{title}</h2>
-        {!isGrid && produtos.length > 0 && <span className="view-all">VER TUDO</span>}
+        {!isGrid && produtos.length > 0 && (
+          <span className="view-all" onClick={() => handleViewAll(title)}>
+            VER TUDO
+          </span>
+        )}
       </div>
       
       <div className="carousel-wrapper">
@@ -59,11 +69,16 @@ function ProductSection({ title, produtos, isGrid = false, veioDeFiltro = false,
 
 export function HomePage() {
   const location = useLocation();
+  const navigate = useNavigate(); 
   const [produtos, setProdutos] = useState([]);
   const [menuFiltros, setMenuFiltros] = useState({});
   const [filtroTime, setFiltroTime] = useState(null);
   const [filtroPais, setFiltroPais] = useState('Todos');
   const [sidebarAberta, setSidebarAberta] = useState(false);
+
+  const handleBannerClick = () => {
+      navigate('/colecao/2026');
+  };
 
   useEffect(() => {
     if (location.state?.filtroPais) {
@@ -125,7 +140,7 @@ export function HomePage() {
             <div className="banner-content">
                 <h1>TEMPORADA 2026</h1>
                 <p>Os novos mantos chegaram com tecnologia de ponta.</p>
-                <button className="banner-cta">CONFIRA A COLEÇÃO</button>
+                <button className="banner-cta" onClick={handleBannerClick}>CONFIRA A COLEÇÃO</button>
             </div>
         </section>
         
