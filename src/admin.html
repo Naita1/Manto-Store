@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Admin - Manto Store</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; display: flex; justify-content: center; padding: 20px; }
+        form { background: #1e1e1e; padding: 20px; border-radius: 8px; width: 100%; max-width: 500px; display: grid; gap: 10px; }
+        input, textarea, select { padding: 10px; border-radius: 4px; border: 1px solid #333; background: #2a2a2a; color: white; width: 100%; box-sizing: border-box; }
+        button { padding: 15px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2ecc71; }
+        h2 { text-align: center; color: #27ae60; }
+        label { font-size: 12px; color: #aaa; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<form id="productForm">
+    <h2>Cadastrar Nova Camisa</h2>
+    
+    <label>Título da Camisa</label>
+    <input type="text" name="title" placeholder="Ex: Camisa Inter de Milão Home 24/25" required id="titleInput">
+    
+    <label>Slug (URL amigável)</label>
+    <input type="text" name="slug" placeholder="ex: camisa-inter-home-24" required id="slugInput">
+
+    <label>Descrição</label>
+    <textarea name="description" placeholder="Detalhes da camisa..." required></textarea>
+
+    <label>Time</label>
+    <input type="text" name="team" placeholder="Ex: Inter de Milão" required>
+
+    <label>País (Categoria)</label>
+    <input type="text" name="category" placeholder="Ex: Itália" required>
+
+    <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>Preço (R$)</label>
+            <input type="number" name="price" step="0.01" placeholder="199.90" required>
+        </div>
+        <div style="flex: 1;">
+            <label>Tamanhos (separe por vírgula)</label>
+            <input type="text" name="sizes" placeholder="P, M, G, GG" required>
+        </div>
+    </div>
+
+    <label>URLs das Imagens (separe por vírgula)</label>
+    <input type="text" name="image" placeholder="http://link1.jpg, http://link2.jpg" required>
+
+    <button type="submit" id="btnSalvar">Salvar no Firebase</button>
+</form>
+
+<script type="module">
+    // Importando direto do CDN para o HTML funcionar sozinho
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Sua config que você passou
+    const firebaseConfig = {
+        apiKey: "AIzaSyAgW1MntPmcBPiC-0CWBo7zfK3WxVW83NM",
+        authDomain: "manto-store.firebaseapp.com",
+        projectId: "manto-store",
+        storageBucket: "manto-store.firebasestorage.app",
+        messagingSenderId: "800829111295",
+        appId: "1:800829111295:web:93c97f2ab02356fbcdc5ca"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Gerador automático de Slug para poupar tempo
+    document.getElementById('titleInput').addEventListener('input', (e) => {
+        const slug = e.target.value.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, '-')
+            .replace(/-+/g, '-');
+        document.getElementById('slugInput').value = slug;
+    });
+
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSalvar');
+        btn.innerText = "Enviando...";
+        btn.disabled = true;
+
+        const formData = new FormData(e.target);
+
+        const data = {
+            title: formData.get("title"),
+            description: formData.get("description"),
+            team: formData.get("team"),
+            category: formData.get("category"),
+            price: parseFloat(formData.get("price")),
+            slug: formData.get("slug"),
+            sizes: formData.get("sizes").split(",").map(s => s.trim().toUpperCase()),
+            image: formData.get("image").split(",").map(i => i.trim()),
+            createdAt: new Date()
+        };
+
+        try {
+            await addDoc(collection(db, "produtos"), data);
+            alert("✅ Camisa cadastrada!");
+            e.target.reset();
+        } catch (error) {
+            console.error(error);
+            alert("❌ Erro de permissão! Verifique as regras do Firebase.");
+        } finally {
+            btn.innerText = "Salvar no Firebase";
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
