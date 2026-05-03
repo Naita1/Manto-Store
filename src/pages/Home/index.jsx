@@ -21,7 +21,10 @@ function ProductSection({ title, produtos, isGrid = false, veioDeFiltro = false,
 
   return (
     <section className={`showcase-section ${isGrid ? 'grid-mode' : ''}`}>
-      <h2 className="showcase-title">{title}</h2>
+      <div className="section-header">
+        <h2 className="showcase-title">{title}</h2>
+        {!isGrid && produtos.length > 0 && <span className="view-all">VER TUDO</span>}
+      </div>
       
       <div className="carousel-wrapper">
         {!isGrid && (
@@ -56,7 +59,6 @@ function ProductSection({ title, produtos, isGrid = false, veioDeFiltro = false,
 
 export function HomePage() {
   const location = useLocation();
-
   const [produtos, setProdutos] = useState([]);
   const [menuFiltros, setMenuFiltros] = useState({});
   const [filtroTime, setFiltroTime] = useState(null);
@@ -74,17 +76,13 @@ export function HomePage() {
     async function gerarMenu() {
       const querySnapshot = await getDocs(collection(db, 'produtos'));
       const novoMenu = {};
-
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         const pais = data.category;
         const time = data.team;
-
         if (pais) {
           if (!novoMenu[pais]) novoMenu[pais] = [];
-          if (time && !novoMenu[pais].includes(time)) {
-            novoMenu[pais].push(time);
-          }
+          if (time && !novoMenu[pais].includes(time)) novoMenu[pais].push(time);
         }
       });
       setMenuFiltros(novoMenu);
@@ -96,18 +94,13 @@ export function HomePage() {
     async function buscarProdutos() {
       const produtosRef = collection(db, 'produtos');
       let q = produtosRef;
-
       if (filtroPais !== 'Todos') {
-        if (filtroTime) {
-          q = query(produtosRef, where('category', '==', filtroPais), where('team', '==', filtroTime));
-        } else {
-          q = query(produtosRef, where('category', '==', filtroPais));
-        }
+        q = filtroTime 
+          ? query(produtosRef, where('category', '==', filtroPais), where('team', '==', filtroTime))
+          : query(produtosRef, where('category', '==', filtroPais));
       }
-
       const snapshot = await getDocs(q);
-      const listaProdutos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setProdutos(listaProdutos);
+      setProdutos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }
     buscarProdutos();
   }, [filtroPais, filtroTime]);
@@ -124,54 +117,49 @@ export function HomePage() {
           setFiltroPais(pais);
           setFiltroTime(time);
           setSidebarAberta(false);
-          if(window.innerWidth < 768) setSidebarAberta(false);
         }}
       />
       
       <main className={`main-content ${sidebarAberta ? 'menu-ativo' : ''}`}>
-        <section
-          className="home-banner"
-          style={{ 
-            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url(${banner})` 
-          }}
-        ></section>
+        <section className="home-banner" style={{ backgroundImage: `url(${banner})` }}>
+            <div className="banner-content">
+                <h1>TEMPORADA 2026</h1>
+                <p>Os novos mantos chegaram com tecnologia de ponta.</p>
+                <button className="banner-cta">CONFIRA A COLEÇÃO</button>
+            </div>
+        </section>
         
         <div className="filter-bar">
-          <Button 
-            className="btn-filtros" 
-            onClick={() => setSidebarAberta(true)}
-          >
+          <Button className="btn-filtros" onClick={() => setSidebarAberta(true)}>
             <span className="icon">☰</span> FILTRAR PRODUTOS
           </Button>
         </div>
 
-      <div className="products-container">  
-        <ProductSection 
-          title={filtroPais === 'Todos' ? "NOVIDADES DA LOJA" : (filtroTime || filtroPais).toUpperCase()} 
-          produtos={produtos} 
-          isGrid={filtroPais !== 'Todos'} 
-          veioDeFiltro={filtroPais !== 'Todos'} 
-          filtroTimeAtivo={filtroTime}
+        {filtroPais === 'Todos' && (
+            <div className="benefits-bar">
+                <div className="benefit-item"><span></span> FRETE GRÁTIS</div>
+                <div className="benefit-item"><span></span> COMPRA SEGURA</div>
+                <div className="benefit-item"><span></span> 1ª TROCA GRÁTIS</div>
+                <div className="benefit-item"><span></span> 12X NO CARTÃO</div>
+            </div>
+        )}
+
+        <div className="products-container">  
+          <ProductSection 
+            title={filtroPais === 'Todos' ? "LANÇAMENTOS" : (filtroTime || filtroPais).toUpperCase()} 
+            produtos={produtos} 
+            isGrid={filtroPais !== 'Todos'} 
+            veioDeFiltro={filtroPais !== 'Todos'} 
           />
 
-        {filtroPais === 'Todos' && (
-          <>
-            <ProductSection 
-              title="MAIS VENDIDOS" 
-              produtos={[...produtos].reverse()} 
-              veioDeFiltro={false} 
-              filtroTimeAtivo={filtroTime}
-              />
+          {filtroPais === 'Todos' && (
+            <>
+              <ProductSection title="OS MAIS DESEJADOS" produtos={[...produtos].reverse()} />
 
-            <ProductSection 
-              title="PROMOÇÕES IMPERDÍVEIS" 
-              produtos={produtos.slice(0, 5)} 
-              veioDeFiltro={false} 
-              filtroTimeAtivo={filtroTime}
-            />
-          </>
-        )}
-      </div>
+              <ProductSection title="OFERTAS DE TEMPO LIMITADO" produtos={produtos.slice(0, 5)} />
+            </>
+          )}
+        </div>
       </main>
     </div>
   );
