@@ -1,5 +1,5 @@
 import { doc, getDoc, collection, query, limit, getDocs, updateDoc, setDoc } from 'firebase/firestore';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/UseAuth';
 import { db } from '../../services/firebase';
@@ -20,18 +20,22 @@ export function ProductPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
+  
   const [produto, setProduto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imagemPrincipal, setImagemPrincipal] = useState('');
-  const [accordionsAbertos, setAccordionsAbertos] = useState([]);
-  const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
-  const [produtosRecomendados, setProdutosRecomendados] = useState([]);
-  const [querPersonalizar, setQuerPersonalizar] = useState(false);
-  const [nomePersonalizado, setNomePersonalizado] = useState('');
-  const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
   const [freteEscolhido, setFreteEscolhido] = useState(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [nomePersonalizado, setNomePersonalizado] = useState('');
+  const [accordionsAbertos, setAccordionsAbertos] = useState([]);
+  const [querPersonalizar, setQuerPersonalizar] = useState(false);
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
+  const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
+  const [produtosRecomendados, setProdutosRecomendados] = useState([]);
+
+  const veioDeFiltro = location.state?.veioDeFiltro;
+  const filtroTimeAtivo = location.state?.filtroTimeAtivo; 
 
   const carouselRef = useRef(null);
 
@@ -200,10 +204,37 @@ export function ProductPage() {
 
   return (
     <div className="product-page-container">
-      <nav className="breadcrumbs">
-        <a href="/">PÁGINA INICIAL</a> / <span>{produto.title}</span>
-      </nav>
+    <nav className="breadcrumbs">
+      <span onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+        PÁGINA INICIAL
+      </span>
 
+      {veioDeFiltro && (produto.category || produto.categoria) && (
+        <>
+          {" / "}
+          <span 
+            onClick={() => navigate('/', { state: { filtroPais: (produto.category || produto.categoria), filtroTime: null } })} 
+            style={{ cursor: 'pointer' }}
+          >
+            {(produto.category || produto.categoria).toUpperCase()}
+          </span>
+        </>
+      )}
+
+      {veioDeFiltro && filtroTimeAtivo && (produto.team || produto.time) && (
+        <>
+          {" / "}
+          <span 
+            onClick={() => navigate('/', { state: { filtroPais: (produto.category || produto.categoria), filtroTime: (produto.team || produto.time) } })} 
+            style={{ cursor: 'pointer' }}
+          >
+            {(produto.team || produto.time).toUpperCase()}
+          </span>
+        </>
+      )}
+
+      {" / "} <span className="current-product">{produto.title}</span>
+    </nav>
       <section className="product-top-section">
         <div className="product-gallery">
           <div className="product-thumbnails">

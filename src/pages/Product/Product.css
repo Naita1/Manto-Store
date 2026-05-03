@@ -21,21 +21,36 @@
   margin-bottom: 2.5rem;
   text-transform: uppercase;
   letter-spacing: 0.05rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
 }
 
+.breadcrumbs span[style*="cursor: pointer"],
 .breadcrumbs a {
   color: var(--text-muted);
   text-decoration: none;
-  transition: color var(--transition);
+  transition: color 0.2s ease;
+  cursor: pointer;
 }
 
+.breadcrumbs span[style*="cursor: pointer"]:hover,
 .breadcrumbs a:hover {
   color: var(--primary-color);
+  text-decoration: underline;
 }
 
-.breadcrumbs span {
+.breadcrumbs .current-product {
   color: var(--text-color);
   font-weight: 600;
+  cursor: default;
+}
+
+.breadcrumbs .separator {
+  color: var(--text-muted);
+  margin: 0 2px;
+  user-select: none;
 }
 
 .product-top-section {

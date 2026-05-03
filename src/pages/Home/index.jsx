@@ -1,13 +1,16 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../services/firebase'; 
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom'; 
+import { db } from '../../services/firebase'; 
+
 import { ProductCard } from '../../components/ProductCard';
 import { Sidebar } from '../../components/Sidebar'; 
 import { Button } from '../../components/Button'; 
+
 import banner from '../../assets/Manto.png';
 import './Home.css';
 
-function ProductSection({ title, produtos, isGrid = false }) {
+function ProductSection({ title, produtos, isGrid = false, veioDeFiltro = false, filtroTimeAtivo = null }) {
   const carouselRef = useRef(null);
 
   const scroll = (scrollOffset) => {
@@ -35,7 +38,9 @@ function ProductSection({ title, produtos, isGrid = false }) {
                 id={produto.id}
                 title={produto.title} 
                 price={produto.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                image={produto.image[0]} 
+                image={produto.image[0]}
+                veioDeFiltro={veioDeFiltro} 
+                filtroTimeAtivo={filtroTimeAtivo}
               />
             ))
           )}
@@ -50,11 +55,20 @@ function ProductSection({ title, produtos, isGrid = false }) {
 }
 
 export function HomePage() {
+  const location = useLocation();
+
   const [produtos, setProdutos] = useState([]);
   const [menuFiltros, setMenuFiltros] = useState({});
-  const [filtroPais, setFiltroPais] = useState('Todos');
   const [filtroTime, setFiltroTime] = useState(null);
+  const [filtroPais, setFiltroPais] = useState('Todos');
   const [sidebarAberta, setSidebarAberta] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.filtroPais) {
+      setFiltroPais(location.state.filtroPais);
+      setFiltroTime(location.state.filtroTime || null);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     async function gerarMenu() {
@@ -131,27 +145,33 @@ export function HomePage() {
           </Button>
         </div>
 
-        <div className="products-container">  
-          <ProductSection 
-            title={filtroPais === 'Todos' ? "NOVIDADES DA LOJA" : (filtroTime || filtroPais).toUpperCase()} 
-            produtos={produtos} 
-            isGrid={filtroPais !== 'Todos'} 
+      <div className="products-container">  
+        <ProductSection 
+          title={filtroPais === 'Todos' ? "NOVIDADES DA LOJA" : (filtroTime || filtroPais).toUpperCase()} 
+          produtos={produtos} 
+          isGrid={filtroPais !== 'Todos'} 
+          veioDeFiltro={filtroPais !== 'Todos'} 
+          filtroTimeAtivo={filtroTime}
           />
 
-          {filtroPais === 'Todos' && (
-            <>
-              <ProductSection 
-                title="MAIS VENDIDOS" 
-                produtos={[...produtos].reverse()} 
+        {filtroPais === 'Todos' && (
+          <>
+            <ProductSection 
+              title="MAIS VENDIDOS" 
+              produtos={[...produtos].reverse()} 
+              veioDeFiltro={false} 
+              filtroTimeAtivo={filtroTime}
               />
 
-              <ProductSection 
-                title="PROMOÇÕES IMPERDÍVEIS" 
-                produtos={produtos.slice(0, 5)} 
-              />
-            </>
-          )}
-        </div>
+            <ProductSection 
+              title="PROMOÇÕES IMPERDÍVEIS" 
+              produtos={produtos.slice(0, 5)} 
+              veioDeFiltro={false} 
+              filtroTimeAtivo={filtroTime}
+            />
+          </>
+        )}
+      </div>
       </main>
     </div>
   );
