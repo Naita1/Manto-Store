@@ -1,38 +1,39 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; 
-import { db } from '../../services/firebase'; 
+import { useLocation, useNavigate } from 'react-router-dom';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../../services/firebase';
 
 import { ProductCard } from '../../components/ProductCard';
-import { Sidebar } from '../../components/Sidebar'; 
-import { Button } from '../../components/Button'; 
+import { Sidebar } from '../../components/Sidebar';
+import { Button } from '../../components/Button';
+import { applyPriceLogic } from '../../utils/offerRules';
 
 import banner from '../../assets/Manto.png';
 import './Home.css';
 
-function ProductSection({ title, produtos, isGrid = false, veioDeFiltro = false, filtroTimeAtivo = null }) {
+const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false, filtroTimeAtivo = null }) => {
   const carouselRef = useRef(null);
   const navigate = useNavigate();
 
-const handleViewAll = (titulo) => {
-    const year = titulo.match(/\d{4}/)?.[0] || "2026";
+  const handleViewAll = () => {
+    const year = title.match(/\d{4}/)?.[0] || "2026";
     navigate(`/collection/${year}`);
-};
-  
-  const scroll = (scrollOffset) => {
+  };
+
+  const scroll = (offset) => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: scrollOffset, behavior: 'smooth' });
+      carouselRef.current.scrollBy({ left: offset, behavior: 'smooth' });
     }
   };
+
+  const formatBRL = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <section className={`showcase-section ${isGrid ? 'grid-mode' : ''}`}>
       <div className="section-header">
         <h2 className="showcase-title">{title}</h2>
         {!isGrid && produtos.length > 0 && (
-          <span className="view-all" onClick={() => handleViewAll(title)}>
-            VER TUDO
-          </span>
+          <span className="view-all" onClick={handleViewAll}>VER TUDO</span>
         )}
       </div>
       
@@ -43,15 +44,17 @@ const handleViewAll = (titulo) => {
         
         <div className="product-row" ref={carouselRef}>
           {produtos.length === 0 ? (
-            <p style={{ color: '#FFF', padding: '20px' }}>Nenhum produto encontrado...</p>
+            <p className="empty-msg">Buscando mantos exclusivos...</p>
           ) : (
-            produtos.map(produto => (
+            produtos.map(p => (
               <ProductCard 
-                key={produto.id} 
-                id={produto.id}
-                title={produto.title} 
-                price={produto.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                image={produto.image[0]}
+                key={p.id} 
+                id={p.id}
+                title={p.title} 
+                price={formatBRL(p.price)}
+                oldPrice={p.hasDiscount ? formatBRL(p.originalPrice) : null}
+                discountBadge={p.hasDiscount ? `-${p.discount}%` : null}
+                image={p.image[0]}
                 veioDeFiltro={veioDeFiltro} 
                 filtroTimeAtivo={filtroTimeAtivo}
               />
@@ -65,83 +68,86 @@ const handleViewAll = (titulo) => {
       </div>
     </section>
   );
-}
+};
 
 export function HomePage() {
-  const location = useLocation();
-  const navigate = useNavigate(); 
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  
   const [produtos, setProdutos] = useState([]);
   const [menuFiltros, setMenuFiltros] = useState({});
-  const [filtroTime, setFiltroTime] = useState(null);
-  const [filtroPais, setFiltroPais] = useState('Todos');
+  const [filtros, setFiltros] = useState({ 
+    pais: state?.filtroPais || 'Todos', 
+    time: state?.filtroTime || null 
+  });
   const [sidebarAberta, setSidebarAberta] = useState(false);
 
-  const handleBannerClick = () => {
-      navigate('/colecao/2026');
-  };
-
   useEffect(() => {
-    if (location.state?.filtroPais) {
-      setFiltroPais(location.state.filtroPais);
-      setFiltroTime(location.state.filtroTime || null);
+    if (state?.filtroPais) {
+      setFiltros({ pais: state.filtroPais, time: state.filtroTime || null });
     }
-  }, [location.state]);
+  }, [state]);
 
   useEffect(() => {
-    async function gerarMenu() {
-      const querySnapshot = await getDocs(collection(db, 'produtos'));
-      const novoMenu = {};
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const pais = data.category;
-        const time = data.team;
-        if (pais) {
-          if (!novoMenu[pais]) novoMenu[pais] = [];
-          if (time && !novoMenu[pais].includes(time)) novoMenu[pais].push(time);
-        }
-      });
-      setMenuFiltros(novoMenu);
-    }
-    gerarMenu();
-  }, []);
-
-  useEffect(() => {
-    async function buscarProdutos() {
+    const fetchData = async () => {
       const produtosRef = collection(db, 'produtos');
       let q = produtosRef;
-      if (filtroPais !== 'Todos') {
-        q = filtroTime 
-          ? query(produtosRef, where('category', '==', filtroPais), where('team', '==', filtroTime))
-          : query(produtosRef, where('category', '==', filtroPais));
+      
+      if (filtros.pais !== 'Todos') {
+        q = filtros.time 
+          ? query(produtosRef, where('category', '==', filtros.pais), where('team', '==', filtros.time))
+          : query(produtosRef, where('category', '==', filtros.pais));
       }
+      
       const snapshot = await getDocs(q);
-      setProdutos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }
-    buscarProdutos();
-  }, [filtroPais, filtroTime]);
+      const docsRaw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const processados = docsRaw.map(p => applyPriceLogic(p));
+      setProdutos(processados);
+
+      // Gerar menu se estiver vazio
+      if (Object.keys(menuFiltros).length === 0) {
+        const novoMenu = {};
+        docsRaw.forEach(data => {
+          if (data.category) {
+            if (!novoMenu[data.category]) novoMenu[data.category] = [];
+            if (data.team && !novoMenu[data.category].includes(data.team)) {
+              novoMenu[data.category].push(data.team);
+            }
+          }
+        });
+        setMenuFiltros(novoMenu);
+      }
+    };
+    fetchData();
+  }, [filtros.pais, filtros.time]);
+
+  const handleFiltrar = (pais, time = null) => {
+    setFiltros({ pais, time });
+    setSidebarAberta(false);
+  };
+
+  const isHome = filtros.pais === 'Todos';
 
   return (
     <div className="home-container">
       <Sidebar 
         menuFiltros={menuFiltros}
-        filtroPais={filtroPais}
-        filtroTime={filtroTime}
+        filtroPais={filtros.pais}
+        filtroTime={filtros.time}
         aberta={sidebarAberta} 
         setAberta={setSidebarAberta} 
-        aoFiltrar={(pais, time = null) => {
-          setFiltroPais(pais);
-          setFiltroTime(time);
-          setSidebarAberta(false);
-        }}
+        aoFiltrar={handleFiltrar}
       />
       
       <main className={`main-content ${sidebarAberta ? 'menu-ativo' : ''}`}>
         <section className="home-banner" style={{ backgroundImage: `url(${banner})` }}>
-            <div className="banner-content">
-                <h1>TEMPORADA 2026</h1>
-                <p>Os novos mantos chegaram com tecnologia de ponta.</p>
-                <button className="banner-cta" onClick={handleBannerClick}>CONFIRA A COLEÇÃO</button>
-            </div>
+          <div className="banner-content">
+            <h1>TEMPORADA 2026</h1>
+            <p>Os novos mantos chegaram com tecnologia de ponta.</p>
+            <button className="banner-cta" onClick={() => navigate('/colecao/2026')}>
+              CONFIRA A COLEÇÃO
+            </button>
+          </div>
         </section>
         
         <div className="filter-bar">
@@ -150,29 +156,34 @@ export function HomePage() {
           </Button>
         </div>
 
-        {filtroPais === 'Todos' && (
-            <div className="benefits-bar">
-                <div className="benefit-item"><span></span> FRETE GRÁTIS</div>
-                <div className="benefit-item"><span></span> COMPRA SEGURA</div>
-                <div className="benefit-item"><span></span> 1ª TROCA GRÁTIS</div>
-                <div className="benefit-item"><span></span> 12X NO CARTÃO</div>
-            </div>
+        {isHome && (
+          <div className="benefits-bar">
+            {['FRETE GRÁTIS', 'COMPRA SEGURA', '1ª TROCA GRÁTIS', '12X NO CARTÃO'].map(item => (
+              <div key={item} className="benefit-item">{item}</div>
+            ))}
+          </div>
         )}
 
         <div className="products-container">  
+          {isHome && produtos.some(p => p.hasDiscount) && (
+            <ProductSection 
+              title="OFERTAS DE TEMPO LIMITADO" 
+              produtos={produtos.filter(p => p.hasDiscount)} 
+            />
+          )}
+
           <ProductSection 
-            title={filtroPais === 'Todos' ? "LANÇAMENTOS" : (filtroTime || filtroPais).toUpperCase()} 
-            produtos={produtos} 
-            isGrid={filtroPais !== 'Todos'} 
-            veioDeFiltro={filtroPais !== 'Todos'} 
+            title={isHome ? "LANÇAMENTOS" : (filtros.time || filtros.pais).toUpperCase()} 
+            produtos={isHome ? produtos.filter(p => !p.hasDiscount) : produtos} 
+            isGrid={!isHome} 
+            veioDeFiltro={!isHome} 
           />
 
-          {filtroPais === 'Todos' && (
-            <>
-              <ProductSection title="OS MAIS DESEJADOS" produtos={[...produtos].reverse()} />
-
-              <ProductSection title="OFERTAS DE TEMPO LIMITADO" produtos={produtos.slice(0, 5)} />
-            </>
+          {isHome && (
+            <ProductSection 
+              title="OS MAIS DESEJADOS" 
+              produtos={[...produtos].filter(p => !p.hasDiscount).reverse().slice(0, 8)} 
+            />
           )}
         </div>
       </main>

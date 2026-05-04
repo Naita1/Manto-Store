@@ -1,51 +1,56 @@
-import { doc, getDoc, collection, query, limit, getDocs, updateDoc, setDoc } from 'firebase/firestore';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { doc, getDoc, collection, query, limit, getDocs, updateDoc, setDoc } from 'firebase/firestore';
+import toast from 'react-hot-toast';
+
 import { useAuth } from '../../contexts/UseAuth';
 import { db } from '../../services/firebase';
-import toast from 'react-hot-toast';
+import { applyPriceLogic } from '../../utils/offerRules';
 import { ShippingCalculator } from '../../components/ShippingCalculator';
+
 import './Product.css';
 
-const fallbackImage = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
+const FALLBACK_IMAGE = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
 
-const accordionsData = [
+const ACCORDIONS_DATA = [
   { id: 1, title: "DESCRIÇÃO", contentKey: "description", fallback: "Nenhuma descrição informada para este produto." },
   { id: 2, title: "TABELA DE MEDIDAS", content: "P: 50x70cm | M: 52x72cm | G: 54x74cm | GG: 56x76cm" },
   { id: 3, title: "AVALIAÇÕES", content: "Nenhuma avaliação no momento." },
   { id: 4, title: "DÚVIDAS SOBRE O PRODUTO", content: "Para personalizar, clique no botão 'PERSONALIZE DE GRAÇA'." }
 ];
 
+const formatCurrency = (value) => value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'R$ 0,00';
+const handleImageError = (e) => { e.target.src = FALLBACK_IMAGE; };
+
 export function ProductPage() {
   const { id } = useParams();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   
   const [produto, setProduto] = useState(null);
+  const [produtosRecomendados, setProdutosRecomendados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imagemPrincipal, setImagemPrincipal] = useState('');
+  
   const [freteEscolhido, setFreteEscolhido] = useState(null);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [nomePersonalizado, setNomePersonalizado] = useState('');
-  const [accordionsAbertos, setAccordionsAbertos] = useState([]);
-  const [querPersonalizar, setQuerPersonalizar] = useState(false);
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
+  const [querPersonalizar, setQuerPersonalizar] = useState(false);
+  const [nomePersonalizado, setNomePersonalizado] = useState('');
   const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
-  const [produtosRecomendados, setProdutosRecomendados] = useState([]);
-
-  const veioDeFiltro = location.state?.veioDeFiltro;
-  const filtroTimeAtivo = location.state?.filtroTimeAtivo; 
-
+  
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [accordionsAbertos, setAccordionsAbertos] = useState([]);
+  
   const carouselRef = useRef(null);
 
-  const listaImagens = produto?.image && Array.isArray(produto.image) && produto.image.length > 0
-    ? produto.image
-    : [fallbackImage];
-
-  const tamanhosDisponiveis = produto?.sizes && Array.isArray(produto.sizes)
-    ? produto.sizes
-    : [];
+  const listaImagens = produto?.image?.length > 0 ? produto.image : [FALLBACK_IMAGE];
+  const tamanhosDisponiveis = produto?.sizes || [];
+  
+  const veioDeFiltro = location.state?.veioDeFiltro;
+  const filtroTimeAtivo = location.state?.filtroTimeAtivo; 
+  const categoriaInfo = produto?.category || produto?.categoria;
+  const timeInfo = produto?.team || produto?.time;
 
   const handleShippingChange = useCallback((dadosFrete) => {
     setFreteEscolhido(dadosFrete);
@@ -54,23 +59,19 @@ export function ProductPage() {
   const handleAddToCart = useCallback(async (redirect = false) => {
     if (!user) {
       toast.error("Você precisa estar logado para adicionar itens ao carrinho!");
-      navigate('/login');
-      return;
+      return navigate('/login');
     }
 
     if (tamanhosDisponiveis.length > 0 && !tamanhoSelecionado) {
-      toast.error("Por favor, selecione um tamanho antes de continuar.");
-      return;
+      return toast.error("Por favor, selecione um tamanho antes de continuar.");
     }
 
     if (!freteEscolhido) {
-      toast.error('Por favor, calcule e selecione uma opção de frete antes de continuar.');
-      return;
+      return toast.error('Por favor, calcule e selecione uma opção de frete antes de continuar.');
     }
 
     if (querPersonalizar && (!nomePersonalizado || !numeroPersonalizado)) {
-      toast.error("Você escolheu personalizar! Por favor, preencha o Nome e o Número do seu manto.");
-      return;
+      return toast.error("Você escolheu personalizar! Por favor, preencha o Nome e o Número.");
     }
 
     try {
@@ -89,17 +90,17 @@ export function ProductPage() {
         addedAt: new Date()
       };
 
+      const formatarPers = (p) => p ? `${p.nome}-${p.numero}` : 'nenhuma';
+
       if (cartSnap.exists()) {
         const cartData = cartSnap.data();
-        let items = cartData.items || [];
+        const items = cartData.items || [];
 
-        const itemIndex = items.findIndex(item => {
-          const mesmoProduto = item.productId === novoItem.productId;
-          const mesmoTamanho = item.size === novoItem.size;
-          const formatarPers = (p) => p ? `${p.nome}-${p.numero}` : 'nenhuma';
-          const mesmaPersonalizacao = formatarPers(item.personalizacao) === formatarPers(novoItem.personalizacao);
-          return mesmoProduto && mesmoTamanho && mesmaPersonalizacao;
-        });
+        const itemIndex = items.findIndex(item => 
+          item.productId === novoItem.productId && 
+          item.size === novoItem.size && 
+          formatarPers(item.personalizacao) === formatarPers(novoItem.personalizacao)
+        );
 
         if (itemIndex > -1) {
           items[itemIndex].quantity += 1;
@@ -124,9 +125,7 @@ export function ProductPage() {
   }, [user, tamanhosDisponiveis, tamanhoSelecionado, freteEscolhido, querPersonalizar, nomePersonalizado, numeroPersonalizado, produto, imagemPrincipal, id, navigate]);
 
   const scrollCarousel = useCallback((offset) => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: offset, behavior: 'smooth' });
-    }
+    carouselRef.current?.scrollBy({ left: offset, behavior: 'smooth' });
   }, []);
 
   const toggleAccordion = useCallback((index) => {
@@ -137,6 +136,20 @@ export function ProductPage() {
 
   const openLightbox = () => setIsLightboxOpen(true);
   const closeLightbox = () => setIsLightboxOpen(false);
+
+  const handleZoomMove = (e) => {
+    if (window.innerWidth <= 768) return;
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    const img = e.currentTarget.querySelector('img');
+    if (img) img.style.transformOrigin = `${x}% ${y}%`;
+  };
+
+  const handleZoomLeave = (e) => {
+    const img = e.currentTarget.querySelector('img');
+    if (img) img.style.transformOrigin = 'center center';
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -152,13 +165,9 @@ export function ProductPage() {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          const dados = docSnap.data();
-          setProduto(dados);
-          const primeiraImagem = dados.image?.[0] || fallbackImage;
-          setImagemPrincipal(primeiraImagem);
-        } else {
-          console.log("Produto não encontrado");
-          setProduto(null);
+          const dadosComDesconto = applyPriceLogic({ id: docSnap.id, ...docSnap.data() });
+          setProduto(dadosComDesconto);
+          setImagemPrincipal(dadosComDesconto.image?.[0] || FALLBACK_IMAGE);
         }
       } catch (error) {
         console.error("Erro ao buscar detalhes do produto:", error);
@@ -175,7 +184,7 @@ export function ProductPage() {
 
         querySnapshot.forEach(doc => {
           if (doc.id !== id) {
-            produtos.push({ id: doc.id, ...doc.data() });
+            produtos.push(applyPriceLogic({ id: doc.id, ...doc.data() }));
           }
         });
 
@@ -195,47 +204,43 @@ export function ProductPage() {
   if (loading) return <div className="loading-msg">Carregando Manto...</div>;
   if (!produto) return <div className="loading-msg">Produto não encontrado.</div>;
 
-  const getAccordionContent = (item) => {
-    if (item.contentKey === "description") {
-      return produto.description || item.fallback;
-    }
-    return item.content;
-  };
-
   return (
     <div className="product-page-container">
-    <nav className="breadcrumbs">
-      <span onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-        PÁGINA INICIAL
-      </span>
+      
+      <nav className="breadcrumbs">
+        <span onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+          PÁGINA INICIAL
+        </span>
 
-      {veioDeFiltro && (produto.category || produto.categoria) && (
-        <>
-          {" / "}
-          <span 
-            onClick={() => navigate('/', { state: { filtroPais: (produto.category || produto.categoria), filtroTime: null } })} 
-            style={{ cursor: 'pointer' }}
-          >
-            {(produto.category || produto.categoria).toUpperCase()}
-          </span>
-        </>
-      )}
+        {veioDeFiltro && categoriaInfo && (
+          <>
+            {" / "}
+            <span 
+              onClick={() => navigate('/', { state: { filtroPais: categoriaInfo, filtroTime: null } })} 
+              style={{ cursor: 'pointer' }}
+            >
+              {categoriaInfo.toUpperCase()}
+            </span>
+          </>
+        )}
 
-      {veioDeFiltro && filtroTimeAtivo && (produto.team || produto.time) && (
-        <>
-          {" / "}
-          <span 
-            onClick={() => navigate('/', { state: { filtroPais: (produto.category || produto.categoria), filtroTime: (produto.team || produto.time) } })} 
-            style={{ cursor: 'pointer' }}
-          >
-            {(produto.team || produto.time).toUpperCase()}
-          </span>
-        </>
-      )}
+        {veioDeFiltro && filtroTimeAtivo && timeInfo && (
+          <>
+            {" / "}
+            <span 
+              onClick={() => navigate('/', { state: { filtroPais: categoriaInfo, filtroTime: timeInfo } })} 
+              style={{ cursor: 'pointer' }}
+            >
+              {timeInfo.toUpperCase()}
+            </span>
+          </>
+        )}
 
-      {" / "} <span className="current-product">{produto.title}</span>
-    </nav>
+        {" / "} <span className="current-product">{produto.title}</span>
+      </nav>
+
       <section className="product-top-section">
+        
         <div className="product-gallery">
           <div className="product-thumbnails">
             {listaImagens.map((img, index) => (
@@ -245,7 +250,7 @@ export function ProductPage() {
                 alt={`${produto.title} - Miniatura ${index + 1}`}
                 className={imagemPrincipal === img ? 'thumb-active' : ''}
                 onClick={() => setImagemPrincipal(img)}
-                onError={(e) => { e.target.src = fallbackImage; }}
+                onError={handleImageError}
               />
             ))}
           </div>
@@ -253,25 +258,10 @@ export function ProductPage() {
           <div
             className="product-image-large"
             onClick={openLightbox}
-            onMouseMove={(e) => {
-              if (window.innerWidth > 768) {
-                const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-                const x = ((e.clientX - left) / width) * 100;
-                const y = ((e.clientY - top) / height) * 100;
-                const img = e.currentTarget.querySelector('img');
-                if (img) img.style.transformOrigin = `${x}% ${y}%`;
-              }
-            }}
-            onMouseLeave={(e) => {
-              const img = e.currentTarget.querySelector('img');
-              if (img) img.style.transformOrigin = 'center center';
-            }}
+            onMouseMove={handleZoomMove}
+            onMouseLeave={handleZoomLeave}
           >
-            <img
-              src={imagemPrincipal}
-              alt={produto.title || "Produto"}
-              onError={(e) => { e.target.src = fallbackImage; }}
-            />
+            <img src={imagemPrincipal} alt={produto.title || "Produto"} onError={handleImageError} />
           </div>
         </div>
 
@@ -284,11 +274,15 @@ export function ProductPage() {
           </div>
 
           <div className="product-price-box">
+            {produto.hasDiscount && (
+              <p className="product-price-old">{formatCurrency(produto.originalPrice)}</p>
+            )}
             <p className="product-price-large">
-              {produto.price?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'R$ 0,00'}
+              {formatCurrency(produto.price)}
+              {produto.hasDiscount && <span className="discount-tag">-{produto.discount}% OFF</span>}
             </p>
             <p className="product-price-installments">
-              EM ATÉ 12X DE {(produto.price / 12).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} SEM JUROS
+              EM ATÉ 12X DE {formatCurrency(produto.price / 12)} SEM JUROS
             </p>
           </div>
 
@@ -314,10 +308,7 @@ export function ProductPage() {
           <ShippingCalculator onShippingSelected={handleShippingChange} />
 
           <div className="action-buttons">
-            <button
-              className="btn-personalize"
-              onClick={() => setQuerPersonalizar(prev => !prev)}
-            >
+            <button className="btn-personalize" onClick={() => setQuerPersonalizar(!querPersonalizar)}>
               PERSONALIZE DE GRAÇA
             </button>
 
@@ -355,10 +346,7 @@ export function ProductPage() {
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                 </svg>
               </button>
-              <button
-                className="btn-buy-now"
-                onClick={() => handleAddToCart(true)}
-              >
+              <button className="btn-buy-now" onClick={() => handleAddToCart(true)}>
                 COMPRAR AGORA
               </button>
             </div>
@@ -367,9 +355,9 @@ export function ProductPage() {
       </section>
 
       <section className="product-bottom-section">
-        {accordionsData.map((item, index) => {
+        {ACCORDIONS_DATA.map((item, index) => {
           const isOpen = accordionsAbertos.includes(index);
-          const content = getAccordionContent(item);
+          const content = item.contentKey === "description" ? (produto.description || item.fallback) : item.content;
 
           return (
             <div key={item.id} className="accordion-wrapper">
@@ -399,73 +387,52 @@ export function ProductPage() {
       <section className="related-products-section">
         <h3 className="related-title">VOCÊ TAMBÉM PODE GOSTAR</h3>
         <div className="carousel-wrapper">
+          
           {produtosRecomendados.length > 0 && (
-            <button
-              className="carousel-arrow"
-              onClick={() => scrollCarousel(-300)}
-              aria-label="Produtos anteriores"
-            >
+            <button className="carousel-arrow" onClick={() => scrollCarousel(-300)} aria-label="Produtos anteriores">
               &#10094;
             </button>
           )}
 
           <div className="related-carousel" ref={carouselRef}>
             {produtosRecomendados.length > 0 ? (
-              produtosRecomendados.map((item) => {
-                const imagemItem = item.image?.[0] || fallbackImage;
-                return (
-                  <div
-                    key={item.id}
-                    className="related-card"
-                    onClick={() => navigate(`/produto/${item.id}`)}
-                  >
-                    <div className="related-card-img">
-                      <img
-                        src={imagemItem}
-                        alt={item.title || "Produto Recomendado"}
-                        onError={(e) => { e.target.src = fallbackImage; }}
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="related-card-info">
-                      <p className="related-card-name">{item.title}</p>
-                      <p className="related-card-price">
-                        {item.price
-                          ? item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                          : 'R$ 0,00'}
-                      </p>
-                    </div>
+              produtosRecomendados.map((item) => (
+                <div key={item.id} className="related-card" onClick={() => navigate(`/produto/${item.id}`)}>
+                  <div className="related-card-img">
+                    <img
+                      src={item.image?.[0] || FALLBACK_IMAGE}
+                      alt={item.title || "Produto Recomendado"}
+                      onError={handleImageError}
+                      loading="lazy"
+                    />
                   </div>
-                );
-              })
+                  <div className="related-card-info">
+                    <p className="related-card-name">{item.title}</p>
+                    <p className="related-card-price">{formatCurrency(item.price)}</p>
+                  </div>
+                </div>
+              ))
             ) : (
               <p style={{ color: '#A0A0A0', fontSize: '0.9rem', padding: '1rem' }}>Buscando produtos...</p>
             )}
           </div>
 
           {produtosRecomendados.length > 0 && (
-            <button
-              className="carousel-arrow"
-              onClick={() => scrollCarousel(300)}
-              aria-label="Próximos produtos"
-            >
+            <button className="carousel-arrow" onClick={() => scrollCarousel(300)} aria-label="Próximos produtos">
               &#10095;
             </button>
           )}
+
         </div>
       </section>
 
       {isLightboxOpen && (
         <div className="lightbox" onClick={closeLightbox}>
           <span className="lightbox-close">&times;</span>
-          <img
-            src={imagemPrincipal}
-            alt={produto.title}
-            className="lightbox-image"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <img src={imagemPrincipal} alt={produto.title} className="lightbox-image" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
+      
     </div>
   );
 }
