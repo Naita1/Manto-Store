@@ -33,7 +33,7 @@ function App() {
             <Route path='/profile' element={<ProfilePage/>} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/help" element={<Help />} />
-            <Route path="/colecao/:year" element={<CollectionPage />} />
+            <Route path="/colecao/:id" element={<CollectionPage />} />
           </Routes>
 
           <Footer />

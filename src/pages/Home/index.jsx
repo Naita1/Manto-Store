@@ -16,9 +16,15 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
   const navigate = useNavigate();
 
   const handleViewAll = () => {
-    const year = title.match(/\d{4}/)?.[0] || "2026";
-    navigate(`/collection/${year}`);
-  };
+      const slug = title
+        .toLowerCase()
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") 
+        .replace(/\s+/g, '-');
+
+      navigate(`/colecao/${slug}`);
+    };
 
   const scroll = (offset) => {
     if (carouselRef.current) {
@@ -104,7 +110,6 @@ export function HomePage() {
       const processados = docsRaw.map(p => applyPriceLogic(p));
       setProdutos(processados);
 
-      // Gerar menu se estiver vazio
       if (Object.keys(menuFiltros).length === 0) {
         const novoMenu = {};
         docsRaw.forEach(data => {
