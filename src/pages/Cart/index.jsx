@@ -63,7 +63,8 @@ export function CartPage() {
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const totalFrete = cartItems.reduce((acc, item) => acc + (item.shipping?.valor || 0), 0);
+  const itemComFrete = cartItems.find(item => item.shipping);
+  const totalFrete = itemComFrete ? (itemComFrete.shipping.valor || 0) : 0;
   const totalPedido = subtotal + totalFrete;
 
   const formatCurrency = (value) => {
@@ -114,7 +115,12 @@ export function CartPage() {
                 <img src={item.image} alt={item.title} />
                 
                 <div className="item-info">
-                  <h3>{item.title}</h3>
+                  <Link 
+                    to={`/produto/${item.productId}`} 
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <h3>{item.title}</h3>
+                  </Link>
                   <p>TAMANHO: {item.size}</p>
                   {item.shipping && (
                     <p style={{fontSize: '0.75rem', color: '#B22222'}}>
@@ -158,8 +164,8 @@ export function CartPage() {
             <span>{formatCurrency(subtotal)}</span>
           </div>
           
-          <div className="summary-line">
-            <span>FRETE {tipoFreteSelecionado && `(${tipoFreteSelecionado})`}:</span>
+        <div className="summary-line">
+            <span>FRETE {itemComFrete?.shipping?.tipo && `(${itemComFrete.shipping.tipo})`}:</span>
             <span>{totalFrete > 0 ? formatCurrency(totalFrete) : 'A calcular...'}</span>
           </div>
 

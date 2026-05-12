@@ -163,7 +163,7 @@ export function HomePage() {
 
         {isHome && (
           <div className="benefits-bar">
-            {['FRETE GRÁTIS', 'COMPRA SEGURA', '1ª TROCA GRÁTIS', '12X NO CARTÃO'].map(item => (
+            {['COMPRA SEGURA', '1ª TROCA GRÁTIS', '12X NO CARTÃO'].map(item => (
               <div key={item} className="benefit-item">{item}</div>
             ))}
           </div>
