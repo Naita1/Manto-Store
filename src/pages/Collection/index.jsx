@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { ProductCard } from '../../components/ProductCard';
-import { applyPriceLogic } from '../../utils/offerRules'; 
+import { applyPriceLogic } from '../../utils/offerRules';
+import { distribuirProdutos } from '../../utils/productDistribution';
 import './Collection.css';
 
 export function CollectionPage() {
@@ -16,6 +17,7 @@ export function CollectionPage() {
         if (id === 'os-mais-desejados') return { tag: 'TRENDING', main: 'OS MAIS', sub: 'DESEJADOS' };
         if (id === 'ofertas-de-tempo-limitado') return { tag: 'OFFERS', main: 'MELHORES', sub: 'OFERTAS' };
         if (id === 'lancamentos') return { tag: 'NEW ARRIVALS', main: 'DROP', sub: 'LANÇAMENTOS' };
+        if (id === 'colecao-completa') return { tag: 'COMPLETE ARCHIVE', main: 'COLEÇÃO', sub: 'COMPLETA' };
         return { tag: 'EDITION LIMITED', main: 'RELEASE', sub: id };
     };
 
@@ -45,6 +47,11 @@ export function CollectionPage() {
 
                     case 'lancamentos':
                         listaFiltrada = todosOsProdutos.filter(p => p.title.includes('2026')).slice(0, 20);
+                        break;
+
+                    case 'colecao-completa':
+                        const distribuicao = distribuirProdutos(todosOsProdutos);
+                        listaFiltrada = distribuicao.outras;
                         break;
 
                     default:

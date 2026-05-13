@@ -12,10 +12,6 @@ export const CONFIG_OFERTAS = {
   "zJeawTE4Tef8qTLM4PBf": 15
 };
 
-/**
- * @param {Object} produto
- * @returns {Object} 
- */
 export const applyPriceLogic = (produto) => {
   const discountPercent = CONFIG_OFERTAS[produto.id];
   

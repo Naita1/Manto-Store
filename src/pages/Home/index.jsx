@@ -7,6 +7,13 @@ import { ProductCard } from '../../components/ProductCard';
 import { Sidebar } from '../../components/Sidebar';
 import { Button } from '../../components/Button';
 import { applyPriceLogic } from '../../utils/offerRules';
+import { 
+  distribuirProdutos, 
+  filtrarPorPaisETime, 
+  extrairMenuFiltros, 
+  formatarBRL,
+  temProdutosNaCategoria 
+} from '../../utils/productDistribution';
 
 import banner from '../../assets/Manto.png';
 import './Home.css';
@@ -32,7 +39,9 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
     }
   };
 
-  const formatBRL = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  if (!temProdutosNaCategoria(produtos, title)) {
+    return null;
+  }
 
   return (
     <section className={`showcase-section ${isGrid ? 'grid-mode' : ''}`}>
@@ -57,8 +66,8 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
                 key={p.id} 
                 id={p.id}
                 title={p.title} 
-                price={formatBRL(p.price)}
-                oldPrice={p.hasDiscount ? formatBRL(p.originalPrice) : null}
+                price={formatarBRL(p.price)}
+                oldPrice={p.hasDiscount ? formatarBRL(p.originalPrice) : null}
                 discountBadge={p.hasDiscount ? `-${p.discount}%` : null}
                 image={p.image[0]}
                 veioDeFiltro={veioDeFiltro} 
@@ -111,15 +120,7 @@ export function HomePage() {
       setProdutos(processados);
 
       if (Object.keys(menuFiltros).length === 0) {
-        const novoMenu = {};
-        docsRaw.forEach(data => {
-          if (data.category) {
-            if (!novoMenu[data.category]) novoMenu[data.category] = [];
-            if (data.team && !novoMenu[data.category].includes(data.team)) {
-              novoMenu[data.category].push(data.team);
-            }
-          }
-        });
+        const novoMenu = extrairMenuFiltros(docsRaw);
         setMenuFiltros(novoMenu);
       }
     };
@@ -170,24 +171,46 @@ export function HomePage() {
         )}
 
         <div className="products-container">  
-          {isHome && produtos.some(p => p.hasDiscount) && (
-            <ProductSection 
-              title="OFERTAS DE TEMPO LIMITADO" 
-              produtos={produtos.filter(p => p.hasDiscount)} 
-            />
-          )}
+          {isHome && (() => {
+            const distribuicao = distribuirProdutos(produtos);
+            
+            return (
+              <>
+                {distribuicao.ofertas.length > 0 && (
+                  <ProductSection 
+                    title="OFERTAS DE TEMPO LIMITADO" 
+                    produtos={distribuicao.ofertas} 
+                  />
+                )}
 
-          <ProductSection 
-            title={isHome ? "LANÇAMENTOS" : (filtros.time || filtros.pais).toUpperCase()} 
-            produtos={isHome ? produtos.filter(p => !p.hasDiscount) : produtos} 
-            isGrid={!isHome} 
-            veioDeFiltro={!isHome} 
-          />
+                <ProductSection 
+                  title="LANÇAMENTOS" 
+                  produtos={distribuicao.lancamentos} 
+                />
 
-          {isHome && (
+                {distribuicao.maisDesejados.length > 0 && (
+                  <ProductSection 
+                    title="OS MAIS DESEJADOS" 
+                    produtos={distribuicao.maisDesejados} 
+                  />
+                )}
+
+                {distribuicao.outras.length > 0 && (
+                  <ProductSection 
+                    title="COLEÇÃO COMPLETA" 
+                    produtos={distribuicao.outras} 
+                  />
+                )}
+              </>
+            );
+          })()}
+
+          {!isHome && (
             <ProductSection 
-              title="OS MAIS DESEJADOS" 
-              produtos={[...produtos].filter(p => !p.hasDiscount).reverse().slice(0, 8)} 
+              title={(filtros.time || filtros.pais).toUpperCase()} 
+              produtos={produtos} 
+              isGrid={true} 
+              veioDeFiltro={true} 
             />
           )}
         </div>
