@@ -14,10 +14,11 @@ export function ProfilePage() {
     name: '', 
     phone: '', 
     address: '',
-    notifications: { email: true, sms: false }, 
+    email: '',
   });
   
   const [orders, setOrders] = useState([]); 
+  const [cartItems, setCartItems] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -25,21 +26,37 @@ export function ProfilePage() {
     async function loadData() {
       if (user?.uid) {
         try {
-          const docSnap = await getDoc(doc(db, "users", user.uid));
-          if (docSnap.exists()) {
-            setUserData(prev => ({ ...prev, ...docSnap.data() }));
+          const userDocSnap = await getDoc(doc(db, "users", user.uid));
+          if (userDocSnap.exists()) {
+            setUserData(prev => ({ ...prev, ...userDocSnap.data() }));
           }
 
-          const q = query(
+          const qOrders = query(
             collection(db, "orders"), 
             where("userId", "==", user.uid),
             limit(3)
           );
-          const querySnapshot = await getDocs(q);
-          setOrders(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          const orderSnap = await getDocs(qOrders);
+          setOrders(orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+          const cartDocRef = doc(db, "carrinhos", user.uid);
+          const cartSnap = await getDoc(cartDocRef);
+          
+          if (cartSnap.exists()) {
+            const cartData = cartSnap.data();
+            
+
+            if (cartData.items && Array.isArray(cartData.items)) {
+              setCartItems(cartData.items.slice(0, 3));
+            } else if (cartData.title) {
+              setCartItems([cartData]);
+            }
+          } else {
+            setCartItems([]);
+          }
 
         } catch (error) {
-          console.error("Erro ao carregar:", error);
+          console.error("Erro ao carregar dados:", error);
         } finally {
           setLoading(false);
         }
@@ -47,12 +64,6 @@ export function ProfilePage() {
     }
     loadData();
   }, [user?.uid]);
-
-  const handleToggleNotification = async (type) => {
-    const newPrefs = { ...userData.notifications, [type]: !userData.notifications[type] };
-    setUserData(prev => ({ ...prev, notifications: newPrefs }));
-    await updateDoc(doc(db, "users", user.uid), { notifications: newPrefs });
-  };
 
   const handleSave = async () => {
     try {
@@ -65,87 +76,119 @@ export function ProfilePage() {
     try { await logout(); navigate('/login'); } catch (e) { console.error(e); }
   };
 
-  if (loading) return <div className="loading-msg">Carregando perfil...</div>;
+  if (loading) return <div className="loading-msg-container"><div className="loader"></div><p>Carregando perfil...</p></div>;
 
   return (
     <div className="product-page-container profile-view">
-      <div className="profile-hero">
+      <header className="profile-hero">
         <div className="avatar-circle-placeholder">
           {userData?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
-         
         </div>
-
         <h1 className="profile-display-name">{userData?.name || "Usuário"}</h1>
-        <button className="btn-edit-toggle" onClick={() => setIsEditing(!isEditing)}>
-          {isEditing ? 'CANCELAR' : 'EDITAR PERFIL'}
-        </button>
-      </div>
-
-      <div className="profile-content-grid">
-        <div className="main-profile-column">
-          <div className="info-box-styled">
-            <div className="box-header">INFORMAÇÕES PESSOAIS</div>
-            <div className="box-inputs">
-              <div className="input-wrapper">
-                <label>NOME COMPLETO</label>
-                <input disabled={!isEditing} value={userData.name} onChange={e => setUserData({...userData, name: e.target.value})} />
-              </div>
-              <div className="input-wrapper">
-                <label>E-MAIL</label>
-                <input disabled={!isEditing} value={userData.email} onChange={e => setUserData({...userData, email: e.target.value})} />
-              </div>
-              <div className="input-wrapper">
-                <label>TELEFONE</label>
-                <input disabled={!isEditing} value={userData.phone || ''} onChange={e => setUserData({...userData, phone: e.target.value})} />
-              </div>
-              <div className="input-wrapper">
-                <label>ENDEREÇO SALVO</label>
-                <input disabled={!isEditing} value={userData.address || ''} onChange={e => setUserData({...userData, address: e.target.value})} />
-              </div>
-            </div>
-            {isEditing && <Button onClick={handleSave}>CONFIRMAR ALTERAÇÕES</Button>}
-          </div>
+        <div className="hero-actions">
+           <Button onClick={() => setIsEditing(!isEditing)} className="btn-edit-toggle">
+            {isEditing ? 'CANCELAR' : 'EDITAR PERFIL'}
+          </Button>
         </div>
+      </header>
 
-        <div className="side-profile-column">
+      <main className="profile-content-grid">
+        <section className="main-profile-column">
           <div className="info-box-styled">
-            <div className="box-header">NOTIFICAÇÕES</div>
-            <div className="notification-settings">
-              <div className="notif-item">
-                <span>E-mail Marketing</span>
-                <input type="checkbox" checked={userData.notifications?.email} onChange={() => handleToggleNotification('email')} />
-              </div>
-              <div className="notif-item">
-                <span>SMS de Promoções</span>
-                <input type="checkbox" checked={userData.notifications?.sms} onChange={() => handleToggleNotification('sms')} />
+            <div className="box-content-wrapper">
+              <div className="box-header">INFORMAÇÕES PESSOAIS</div>
+              <div className="box-inputs">
+                <div className="input-row">
+                  <div className="input-wrapper">
+                    <label>NOME COMPLETO</label>
+                    <input disabled={!isEditing} value={userData.name} onChange={e => setUserData({...userData, name: e.target.value})} placeholder="Seu nome" />
+                  </div>
+                  <div className="input-wrapper">
+                    <label>E-MAIL</label>
+                    <input disabled={!isEditing} value={userData.email} onChange={e => setUserData({...userData, email: e.target.value})} placeholder="seu@email.com" />
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-wrapper">
+                    <label>TELEFONE</label>
+                    <input disabled={!isEditing} value={userData.phone || ''} onChange={e => setUserData({...userData, phone: e.target.value})} placeholder="(00) 00000-0000" />
+                  </div>
+                  <div className="input-wrapper">
+                    <label>ENDEREÇO SALVO</label>
+                    <input disabled={!isEditing} value={userData.address || ''} onChange={e => setUserData({...userData, address: e.target.value})} placeholder="Rua, número, bairro" />
+                  </div>
+                </div>
               </div>
             </div>
+            {isEditing && (
+              <div className="save-actions">
+                <Button onClick={handleSave} className="btn-confirm-save">CONFIRMAR ALTERAÇÕES</Button>
+              </div>
+            )}
           </div>
 
-          <div className="info-box-styled" style={{ marginTop: '2rem' }}>
-            <div className="box-header">AÇÕES DA CONTA</div>
-            <div className="profile-actions-wrapper">
-              <Button onClick={() => navigate('/cart')}>MEU CARRINHO</Button>
-              <Button onClick={handleLogout} className="btn-logout-variant">SAIR DA CONTA</Button>
-            </div>
-          </div>
-        </div>
-      </div>
-               <div className="info-box-styled" style={{ marginTop: '2rem' }}>
+          <div className="info-box-styled">
             <div className="box-header">ÚLTIMOS PEDIDOS</div>
             <div className="orders-list">
               {orders.length > 0 ? orders.map(order => (
                 <div key={order.id} className="order-item">
                   <div className="order-info">
-                    <span>#{order.id.slice(-6).toUpperCase()}</span>
-                    <small>{order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'Recente'}</small>
+                    <span className="order-id">#{order.id.slice(-6).toUpperCase()}</span>
+                    <small className="order-date">{order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'Recente'}</small>
                   </div>
-                  <div className="order-status">{order.status || 'Processando'}</div>
+                  <div className="order-status-tag">{order.status || 'Processando'}</div>
                   <div className="order-total">R$ {order.total}</div>
                 </div>
-              )) : <p className="empty-msg">Nenhum pedido encontrado.</p>}
+              )) : (
+                <div className="empty-state-box">
+                  <p className="empty-msg">Nenhum pedido realizado recentemente.</p>
+                </div>
+              )}
             </div>
           </div>
+        </section>
+
+        <aside className="side-profile-column">
+          <div className="info-box-styled">
+            <div className="box-header">RESUMO DO CARRINHO</div>
+            <div className="cart-preview-list">
+              {cartItems.length > 0 ? (
+                cartItems.map((item, idx) => (
+                  <div key={idx} className="cart-mini-item">
+                    <div className="mini-thumb">
+                       {item.image ? <img src={item.image} alt={item.title} /> : <div className="thumb-placeholder" />}
+                    </div>
+                    <div className="mini-details">
+                      <span className="mini-title">{item.title}</span>
+                      <span className="mini-meta">{item.size} • Qtd: {item.quantity}</span>
+                    </div>
+                    <span className="mini-price">R$ {item.price}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state-box">
+                  <p className="empty-msg">Seu carrinho está vazio.</p>
+                </div>
+              )}
+            </div>
+            <div className="cart-action-btn-wrapper">
+              <Button 
+                onClick={() => navigate(cartItems.length > 0 ? '/cart' : '/')} 
+                className={cartItems.length > 0 ? "btn-confirm-save" : "btn-logout-variant"}
+              >
+                {cartItems.length > 0 ? 'VER CARRINHO COMPLETO' : 'VER PRODUTOS'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="info-box-styled">
+            <div className="box-header">CONTA</div>
+            <div className="profile-actions-wrapper">
+              <Button onClick={handleLogout} className="btn-logout-variant">SAIR DA CONTA</Button>
+            </div>
+          </div>
+        </aside>
+      </main>
     </div>
   );
 }
