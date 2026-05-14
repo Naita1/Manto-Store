@@ -44,13 +44,8 @@ export function ProfilePage() {
           
           if (cartSnap.exists()) {
             const cartData = cartSnap.data();
-            
-
-            if (cartData.items && Array.isArray(cartData.items)) {
-              setCartItems(cartData.items.slice(0, 3));
-            } else if (cartData.title) {
-              setCartItems([cartData]);
-            }
+            const items = cartData.items || (cartData.title ? [cartData] : []);
+            setCartItems(items.slice(0, 3));
           } else {
             setCartItems([]);
           }
@@ -148,46 +143,71 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <aside className="side-profile-column">
-          <div className="info-box-styled">
-            <div className="box-header">RESUMO DO CARRINHO</div>
-            <div className="cart-preview-list">
-              {cartItems.length > 0 ? (
-                cartItems.map((item, idx) => (
-                  <div key={idx} className="cart-mini-item">
-                    <div className="mini-thumb">
-                       {item.image ? <img src={item.image} alt={item.title} /> : <div className="thumb-placeholder" />}
-                    </div>
-                    <div className="mini-details">
-                      <span className="mini-title">{item.title}</span>
-                      <span className="mini-meta">{item.size} • Qtd: {item.quantity}</span>
-                    </div>
-                    <span className="mini-price">R$ {item.price}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-state-box">
-                  <p className="empty-msg">Seu carrinho está vazio.</p>
-                </div>
-              )}
+<aside className="side-profile-column">
+  <div className="info-box-styled">
+    <div className="box-header">RESUMO DO CARRINHO</div>
+    
+    <div className="cart-preview-list-clean">
+      {cartItems.length > 0 ? (
+        cartItems.map((item, idx) => (
+          <div 
+            key={idx} 
+            className="cart-item-minimal"
+            onClick={() => navigate(`/produto/${item.productId}`)}
+            title={`Ver ${item.title}`}
+          >
+            <div className="minimal-thumb">
+               {item.image ? <img src={item.image} alt={item.title} /> : <div className="thumb-placeholder" />}
             </div>
-            <div className="cart-action-btn-wrapper">
-              <Button 
-                onClick={() => navigate(cartItems.length > 0 ? '/cart' : '/')} 
-                className={cartItems.length > 0 ? "btn-confirm-save" : "btn-logout-variant"}
-              >
-                {cartItems.length > 0 ? 'VER CARRINHO COMPLETO' : 'VER PRODUTOS'}
-              </Button>
+            <div className="minimal-info">
+              <span className="minimal-title">{item.title}</span>
             </div>
+            <div className="minimal-arrow">→</div>
           </div>
+        ))
+      ) : (
+        <div className="empty-state-box">
+          <p className="empty-msg">Nenhum item no carrinho.</p>
+        </div>
+      )}
+    </div>
 
-          <div className="info-box-styled">
-            <div className="box-header">CONTA</div>
-            <div className="profile-actions-wrapper">
-              <Button onClick={handleLogout} className="btn-logout-variant">SAIR DA CONTA</Button>
-            </div>
-          </div>
-        </aside>
+    <div className="cart-action-btn-wrapper">
+      <Button 
+        onClick={() => navigate(cartItems.length > 0 ? '/cart' : '/')} 
+        className="btn-confirm-save"
+      >
+        {cartItems.length > 0 ? 'VER CARRINHO COMPLETO' : 'ADICIONAR PRODUTOS'}
+      </Button>
+    </div>
+  </div>
+
+  <div className="info-box-styled">
+    <div className="box-header">DETALHES DA CONTA</div>
+    
+    <div className="account-details-grid">
+      <div className="detail-item">
+        <label>STATUS</label>
+        <span className="status-badge">CONTA ATIVA</span>
+      </div>
+      
+      <div className="detail-group">
+        <div className="detail-sub">
+          <label>MEMBRO DESDE</label>
+          <span>{userData.createdAt?.seconds ? new Date(userData.createdAt.seconds * 1000).getFullYear() : '2024'}</span>
+        </div>
+
+      </div>
+
+
+
+    </div>
+
+    <div className="profile-actions-wrapper">
+      <Button onClick={handleLogout} className="btn-logout-variant">ENCERRAR SESSÃO</Button>
+    </div>
+  </div>
+</aside>
       </main>
     </div>
   );
