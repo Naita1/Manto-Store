@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 
 import { ProductCard } from '../../components/ProductCard';
@@ -9,7 +9,6 @@ import { Button } from '../../components/Button';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { 
   distribuirProdutos, 
-  filtrarPorPaisETime, 
   extrairMenuFiltros, 
   formatarBRL,
   temProdutosNaCategoria 
@@ -89,8 +88,9 @@ export function HomePage() {
   const { state } = useLocation();
   const navigate = useNavigate();
   
-  const [produtos, setProdutos] = useState([]);
-  const [menuFiltros, setMenuFiltros] = useState({});
+  const [todosProdutos, setTodosProdutos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  
   const [filtros, setFiltros] = useState({ 
     pais: state?.filtroPais || 'Todos', 
     time: state?.filtroTime || null 
@@ -104,28 +104,35 @@ export function HomePage() {
   }, [state]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const produtosRef = collection(db, 'produtos');
-      let q = produtosRef;
-      
-      if (filtros.pais !== 'Todos') {
-        q = filtros.time 
-          ? query(produtosRef, where('category', '==', filtros.pais), where('team', '==', filtros.time))
-          : query(produtosRef, where('category', '==', filtros.pais));
-      }
-      
-      const snapshot = await getDocs(q);
-      const docsRaw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const processados = docsRaw.map(p => applyPriceLogic(p));
-      setProdutos(processados);
-
-      if (Object.keys(menuFiltros).length === 0) {
-        const novoMenu = extrairMenuFiltros(docsRaw);
-        setMenuFiltros(novoMenu);
+    const fetchTodosDados = async () => {
+      try {
+        const produtosRef = collection(db, 'produtos');
+        const snapshot = await getDocs(produtosRef);
+        const docsRaw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const processados = docsRaw.map(p => applyPriceLogic(p));
+        
+        setTodosProdutos(processados);
+      } catch (error) {
+        console.error("Erro ao buscar dados do Firebase:", error);
+      } finally {
+        setCarregando(false);
       }
     };
-    fetchData();
-  }, [filtros.pais, filtros.time]);
+    
+    fetchTodosDados();
+  }, []);
+
+  const menuFiltros = useMemo(() => {
+    return extrairMenuFiltros(todosProdutos);
+  }, [todosProdutos]);
+
+  const produtosFiltrados = useMemo(() => {
+    return todosProdutos.filter(produto => {
+      const batePais = filtros.pais === 'Todos' || produto.category === filtros.pais;
+      const bateTime = !filtros.time || produto.team === filtros.time;
+      return batePais && bateTime;
+    });
+  }, [todosProdutos, filtros.pais, filtros.time]);
 
   const handleFiltrar = (pais, time = null) => {
     setFiltros({ pais, time });
@@ -133,6 +140,10 @@ export function HomePage() {
   };
 
   const isHome = filtros.pais === 'Todos';
+
+  if (carregando) {
+    return <div className="home-container"><p className="empty-msg">Carregando catálogo...</p></div>;
+  }
 
   return (
     <div className="home-container">
@@ -172,7 +183,7 @@ export function HomePage() {
 
         <div className="products-container">  
           {isHome && (() => {
-            const distribuicao = distribuirProdutos(produtos);
+            const distribuicao = distribuirProdutos(produtosFiltrados);
             
             return (
               <>
@@ -208,9 +219,10 @@ export function HomePage() {
           {!isHome && (
             <ProductSection 
               title={(filtros.time || filtros.pais).toUpperCase()} 
-              produtos={produtos} 
+              produtos={produtosFiltrados} 
               isGrid={true} 
               veioDeFiltro={true} 
+              filtroTimeAtivo={filtros.time}
             />
           )}
         </div>
