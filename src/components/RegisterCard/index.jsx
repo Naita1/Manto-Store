@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Input } from '../Input';
 import { Button } from '../Button';
+import { Loading } from '../Loading'; 
 import toast from 'react-hot-toast';
 
 import './RegisterCard.css';
@@ -66,7 +67,6 @@ export function RegisterCard() {
       toast.success('Conta criada! Bem-vindo à Manto Store!');
       
       setName(''); setEmail(''); setPassword(''); setConfirmPassword('');
-
       setTimeout(() => {
         navigate('/login'); 
       }, 2000);
@@ -75,13 +75,14 @@ export function RegisterCard() {
       console.error("Erro no cadastro:", error.code);
       const friendlyMessage = registerErrorMessages[error.code] || 'Erro ao criar conta. Tente novamente.';
       toast.error(friendlyMessage);
-    } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
   return (
     <div className='card-container'>
+      {loading && <Loading message="Criando sua conta..." />}
+      
       <h2 className='card-title'>Primeiro Acesso</h2>
       
       <form className='card-form' onSubmit={handleRegister}>
@@ -93,6 +94,7 @@ export function RegisterCard() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          disabled={loading}
         />
 
         <Input
@@ -103,6 +105,7 @@ export function RegisterCard() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={loading}
         />
 
         <div className="password-input-group">
@@ -114,6 +117,7 @@ export function RegisterCard() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={loading}
           />
 
           {password.length > 0 && (
@@ -148,6 +152,7 @@ export function RegisterCard() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
+          disabled={loading}
         />
 
         <Button 
@@ -155,7 +160,7 @@ export function RegisterCard() {
           disabled={loading || !isPasswordStrong || password !== confirmPassword}
           style={{ marginTop: '1rem' }}
         >
-          {loading ? 'Cadastrando...' : 'Cadastrar'}
+          Cadastrar
         </Button>
       </form>
       
@@ -165,6 +170,7 @@ export function RegisterCard() {
           type="button" 
           className="button-secondary"
           onClick={() => navigate('/login')}
+          disabled={loading}
         >
           Entrar na minha conta
         </Button>

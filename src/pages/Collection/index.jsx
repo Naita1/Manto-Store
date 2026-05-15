@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { ProductCard } from '../../components/ProductCard';
+import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { distribuirProdutos } from '../../utils/productDistribution';
 import './Collection.css';
@@ -94,28 +95,31 @@ export function CollectionPage() {
             <main className="search-page-container collection-view">
                 <div className="collection-stats">
                     <span className="line"></span>
-                    <span className="label"><b>{produtos.length}</b> MANTOS DISPONÍVEIS</span>
+                    <span className="label">
+                        {loading ? (
+                            <span>BUSCANDO PRODUTOS...</span>
+                        ) : (
+                            <span><b>{produtos.length}</b> MANTOS DISPONÍVEIS</span>
+                        )}
+                    </span>
                     <span className="line"></span>
                 </div>
 
-                <div className="results-grid">
+                <div className="results-grid" style={{ position: 'relative' }}>
                     {loading ? (
-                        <div className="search-status-container">
-                            <div className="loader"></div>
+                        <div className="search-status-container" style={{ width: '100%', gridColumn: '1 / -1' }}>
+                            <Loading message="Carregando catálogo de mantos..." />
                         </div>
                     ) : (
                         produtos.map(p => (
                         <div className="product-card-wrapper" key={p.id}>
                             <ProductCard 
-                            id={p.id}
-                            title={p.title}
-                            price={p.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                            
-                            oldPrice={p.hasDiscount ? p.originalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : null}
-                            
-                            discountBadge={p.hasDiscount ? `-${p.discount}%` : null}
-                            
-                            image={p.image[0]}
+                                id={p.id}
+                                title={p.title}
+                                price={p.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                oldPrice={p.hasDiscount ? p.originalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : null}
+                                discountBadge={p.hasDiscount ? `-${p.discount}%` : null}
+                                image={p.image[0]}
                             />
                         </div>
                         ))

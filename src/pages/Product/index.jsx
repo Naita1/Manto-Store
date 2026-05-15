@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 
 import { useAuth } from '../../contexts/UseAuth';
 import { db } from '../../services/firebase';
+import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { ShippingCalculator } from '../../components/ShippingCalculator';
 
@@ -56,88 +57,88 @@ export function ProductPage() {
     setFreteEscolhido(dadosFrete);
   }, []);
 
-const handleAddToCart = useCallback(async (redirect = false) => {
-  if (!user) {
-    toast.error("Você precisa estar logado para adicionar itens ao carrinho!");
-    return navigate('/login');
-  }
+  const handleAddToCart = useCallback(async (redirect = false) => {
+    if (!user) {
+      toast.error("Você precisa estar logado para adicionar itens ao carrinho!");
+      return navigate('/login');
+    }
 
-  if (tamanhosDisponiveis.length > 0 && !tamanhoSelecionado) {
-    return toast.error("Por favor, selecione um tamanho antes de continuar.");
-  }
+    if (tamanhosDisponiveis.length > 0 && !tamanhoSelecionado) {
+      return toast.error("Por favor, selecione um tamanho antes de continuar.");
+    }
 
-  if (querPersonalizar && (!nomePersonalizado || !numeroPersonalizado)) {
-    return toast.error("Você escolheu personalizar! Por favor, preencha o Nome e o Número.");
-  }
+    if (querPersonalizar && (!nomePersonalizado || !numeroPersonalizado)) {
+      return toast.error("Você escolheu personalizar! Por favor, preencha o Nome e o Número.");
+    }
 
-  try {
-    const cartRef = doc(db, 'carrinhos', user.uid);
-    const cartSnap = await getDoc(cartRef);
-    
-    let freteParaAdicionar = freteEscolhido;
-
-    if (!freteParaAdicionar && cartSnap.exists()) {
-      const itemsExistentes = cartSnap.data().items || [];
-      const itemComShipping = itemsExistentes.find(item => item.shipping);
+    try {
+      const cartRef = doc(db, 'carrinhos', user.uid);
+      const cartSnap = await getDoc(cartRef);
       
-      if (itemComShipping) {
-        freteParaAdicionar = itemComShipping.shipping;
+      let freteParaAdicionar = freteEscolhido;
+
+      if (!freteParaAdicionar && cartSnap.exists()) {
+        const itemsExistentes = cartSnap.data().items || [];
+        const itemComShipping = itemsExistentes.find(item => item.shipping);
+        
+        if (itemComShipping) {
+          freteParaAdicionar = itemComShipping.shipping;
+        }
       }
-    }
 
-    if (!freteParaAdicionar) {
-      return toast.error('Por favor, calcule o frete para este pedido antes de continuar.');
-    }
+      if (!freteParaAdicionar) {
+        return toast.error('Por favor, calcule o frete para este pedido antes de continuar.');
+      }
 
-    const novoItem = {
-      productId: id,
-      title: produto.title,
-      price: produto.price,
-      image: imagemPrincipal,
-      size: tamanhoSelecionado,
-      quantity: 1,
-      shipping: freteParaAdicionar,
-      personalizacao: querPersonalizar ? { nome: nomePersonalizado, numero: numeroPersonalizado } : null,
-      addedAt: new Date()
-    };
+      const novoItem = {
+        productId: id,
+        title: produto.title,
+        price: produto.price,
+        image: imagemPrincipal,
+        size: tamanhoSelecionado,
+        quantity: 1,
+        shipping: freteParaAdicionar,
+        personalizacao: querPersonalizar ? { nome: nomePersonalizado, numero: numeroPersonalizado } : null,
+        addedAt: new Date()
+      };
 
-    const formatarPers = (p) => p ? `${p.nome}-${p.numero}` : 'nenhuma';
+      const formatarPers = (p) => p ? `${p.nome}-${p.numero}` : 'nenhuma';
 
-    if (cartSnap.exists()) {
-      const cartData = cartSnap.data();
-      const items = [...(cartData.items || [])];
+      if (cartSnap.exists()) {
+        const cartData = cartSnap.data();
+        const items = [...(cartData.items || [])];
 
-      const itemIndex = items.findIndex(item => 
-        item.productId === novoItem.productId && 
-        item.size === novoItem.size && 
-        formatarPers(item.personalizacao) === formatarPers(novoItem.personalizacao)
-      );
+        const itemIndex = items.findIndex(item => 
+          item.productId === novoItem.productId && 
+          item.size === novoItem.size && 
+          formatarPers(item.personalizacao) === formatarPers(novoItem.personalizacao)
+        );
 
-      if (itemIndex > -1) {
-        items[itemIndex].quantity += 1;
-        items.forEach(item => item.shipping = freteParaAdicionar);
+        if (itemIndex > -1) {
+          items[itemIndex].quantity += 1;
+          items.forEach(item => item.shipping = freteParaAdicionar);
+        } else {
+          items.push(novoItem);
+          items.forEach(item => item.shipping = freteParaAdicionar);
+        }
+
+        await updateDoc(cartRef, { items });
       } else {
-        items.push(novoItem);
-        items.forEach(item => item.shipping = freteParaAdicionar);
+        await setDoc(cartRef, { items: [novoItem] });
       }
 
-      await updateDoc(cartRef, { items });
-    } else {
-      await setDoc(cartRef, { items: [novoItem] });
+      if (redirect) {
+        navigate('/cart');
+      } else {
+        toast.success("Produto adicionado ao manto-carrinho!");
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar ao carrinho:", error);
+      toast.error("Erro ao salvar no banco de dados.");
     }
-
-    if (redirect) {
-      navigate('/cart');
-    } else {
-      toast.success("Produto adicionado ao manto-carrinho!");
-    }
-  } catch (error) {
-    console.error("Erro ao adicionar ao carrinho:", error);
-    toast.error("Erro ao salvar no banco de dados.");
-  }
-}, [user, tamanhosDisponiveis, tamanhoSelecionado, freteEscolhido, querPersonalizar, nomePersonalizado, numeroPersonalizado, produto, imagemPrincipal, id, navigate]);
- 
-const scrollCarousel = useCallback((offset) => {
+  }, [user, tamanhosDisponiveis, tamanhoSelecionado, freteEscolhido, querPersonalizar, nomePersonalizado, numeroPersonalizado, produto, imagemPrincipal, id, navigate]);
+   
+  const scrollCarousel = useCallback((offset) => {
     carouselRef.current?.scrollBy({ left: offset, behavior: 'smooth' });
   }, []);
 
@@ -214,8 +215,17 @@ const scrollCarousel = useCallback((offset) => {
     }
   }, [id]);
 
-  if (loading) return <div className="loading-msg">Carregando Manto...</div>;
-  if (!produto) return <div className="loading-msg">Produto não encontrado.</div>;
+  if (loading) {
+    return <Loading message="Preparando detalhes do manto..." />;
+  }
+
+  if (!produto) {
+    return (
+      <div className="product-page-container">
+        <div className="loading-msg">Produto não encontrado.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="product-page-container">
@@ -414,7 +424,7 @@ const scrollCarousel = useCallback((offset) => {
                   <div className="related-card-img">
                     <img
                       src={item.image?.[0] || FALLBACK_IMAGE}
-                      alt={item.title || "Produto Recomendado"}
+                      alt={item.title || "Produto Recommended"}
                       onError={handleImageError}
                       loading="lazy"
                     />

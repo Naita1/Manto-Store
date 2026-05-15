@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../services/firebase'; 
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../../contexts/UseAuth'; 
+import { Loading } from '../../components/Loading';
 import './Cart.css';
 
 export function CartPage() {
@@ -75,10 +76,6 @@ export function CartPage() {
     ? `${cartItems[0].shipping.cidade} - CEP: ${cartItems[0].shipping.cep}`
     : 'Nenhum CEP calculado';
 
-  const tipoFreteSelecionado = cartItems.length > 0 && cartItems[0].shipping
-    ? cartItems[0].shipping.tipo
-    : '';
-
   if (!user && !loading) {
     return (
       <div className="cart-page-container">
@@ -92,7 +89,7 @@ export function CartPage() {
   }
 
   if (loading) {
-    return <div className="loading-msg">A carregar o teu carrinho...</div>;
+    return <Loading message="Buscando seu carrinho..." />;
   }
 
   return (

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast'; 
 import { Button } from '../Button';
 import { Input } from '../Input';
+import { Loading } from '../Loading'; 
 
 import './LoginCard.css';
 
@@ -31,7 +32,6 @@ export function LoginCard() {
 
     try {
       await login(email, password);
-      
       toast.success('Bem-vindo de volta!');
 
       setTimeout(() => {
@@ -42,10 +42,8 @@ export function LoginCard() {
     catch (error) {
       console.error("Erro original:", error.code);
       const friendlyMessage = loginErrorMessages[error.code] || 'Ocorreu um erro inesperado.';
-
       toast.error(friendlyMessage);
-    } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
@@ -57,17 +55,15 @@ export function LoginCard() {
     try {
       setLoading(true);
       await resetPassword(email);
-      toast.success('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
+      toast.success('E-mail de redefinição enviado!');
     } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        toast.error('E-mail não cadastrado.');
-      } else {
-        toast.error('Erro ao enviar e-mail de redefinição.');
-      }
+      toast.error(error.code === 'auth/user-not-found' ? 'E-mail não cadastrado.' : 'Erro ao enviar e-mail.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (loading) return <Loading message="Autenticando..." />;
 
   return (
     <div className="card-container">
@@ -104,7 +100,7 @@ export function LoginCard() {
         </Button>     
 
         <Button type="submit" disabled={loading}>
-          {loading ? 'Carregando...' : 'Entrar'}
+          Entrar
         </Button>
       </form>
 
@@ -114,6 +110,7 @@ export function LoginCard() {
           type="button"
           className="button-secondary"
           onClick={() => navigate('/register')}
+          disabled={loading}
         >
           Criar conta
         </Button>

@@ -4,6 +4,7 @@ import { db } from '../../services/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button/index';
+import { Loading } from '../../components/Loading';
 import './Profile.css';
 
 export function ProfilePage() {
@@ -71,7 +72,9 @@ export function ProfilePage() {
     try { await logout(); navigate('/login'); } catch (e) { console.error(e); }
   };
 
-  if (loading) return <div className="loading-msg-container"><div className="loader"></div><p>Carregando perfil...</p></div>;
+  if (loading) {
+    return <Loading message="Carregando dados do seu perfil..." />;
+  }
 
   return (
     <div className="product-page-container profile-view">
@@ -143,71 +146,67 @@ export function ProfilePage() {
           </div>
         </section>
 
-<aside className="side-profile-column">
-  <div className="info-box-styled">
-    <div className="box-header">RESUMO DO CARRINHO</div>
-    
-    <div className="cart-preview-list-clean">
-      {cartItems.length > 0 ? (
-        cartItems.map((item, idx) => (
-          <div 
-            key={idx} 
-            className="cart-item-minimal"
-            onClick={() => navigate(`/produto/${item.productId}`)}
-            title={`Ver ${item.title}`}
-          >
-            <div className="minimal-thumb">
-               {item.image ? <img src={item.image} alt={item.title} /> : <div className="thumb-placeholder" />}
+        <aside className="side-profile-column">
+          <div className="info-box-styled">
+            <div className="box-header">RESUMO DO CARRINHO</div>
+            
+            <div className="cart-preview-list-clean">
+              {cartItems.length > 0 ? (
+                cartItems.map((item, idx) => (
+                  <div 
+                    key={idx} 
+                    className="cart-item-minimal"
+                    onClick={() => navigate(`/produto/${item.productId}`)}
+                    title={`Ver ${item.title}`}
+                  >
+                    <div className="minimal-thumb">
+                       {item.image ? <img src={item.image} alt={item.title} /> : <div className="thumb-placeholder" />}
+                    </div>
+                    <div className="minimal-info">
+                      <span className="minimal-title">{item.title}</span>
+                    </div>
+                    <div className="minimal-arrow">→</div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state-box">
+                  <p className="empty-msg">Nenhum item no carrinho.</p>
+                </div>
+              )}
             </div>
-            <div className="minimal-info">
-              <span className="minimal-title">{item.title}</span>
+
+            <div className="cart-action-btn-wrapper">
+              <Button 
+                onClick={() => navigate(cartItems.length > 0 ? '/cart' : '/')} 
+                className="btn-confirm-save"
+              >
+                {cartItems.length > 0 ? 'VER CARRINHO COMPLETO' : 'ADICIONAR PRODUTOS'}
+              </Button>
             </div>
-            <div className="minimal-arrow">→</div>
           </div>
-        ))
-      ) : (
-        <div className="empty-state-box">
-          <p className="empty-msg">Nenhum item no carrinho.</p>
-        </div>
-      )}
-    </div>
 
-    <div className="cart-action-btn-wrapper">
-      <Button 
-        onClick={() => navigate(cartItems.length > 0 ? '/cart' : '/')} 
-        className="btn-confirm-save"
-      >
-        {cartItems.length > 0 ? 'VER CARRINHO COMPLETO' : 'ADICIONAR PRODUTOS'}
-      </Button>
-    </div>
-  </div>
+          <div className="info-box-styled">
+            <div className="box-header">DETALHES DA CONTA</div>
+            
+            <div className="account-details-grid">
+              <div className="detail-item">
+                <label>STATUS</label>
+                <span className="status-badge">CONTA ATIVA</span>
+              </div>
+              
+              <div className="detail-group">
+                <div className="detail-sub">
+                  <label>MEMBRO DESDE</label>
+                  <span>{userData.createdAt?.seconds ? new Date(userData.createdAt.seconds * 1000).getFullYear() : '2024'}</span>
+                </div>
+              </div>
+            </div>
 
-  <div className="info-box-styled">
-    <div className="box-header">DETALHES DA CONTA</div>
-    
-    <div className="account-details-grid">
-      <div className="detail-item">
-        <label>STATUS</label>
-        <span className="status-badge">CONTA ATIVA</span>
-      </div>
-      
-      <div className="detail-group">
-        <div className="detail-sub">
-          <label>MEMBRO DESDE</label>
-          <span>{userData.createdAt?.seconds ? new Date(userData.createdAt.seconds * 1000).getFullYear() : '2024'}</span>
-        </div>
-
-      </div>
-
-
-
-    </div>
-
-    <div className="profile-actions-wrapper">
-      <Button onClick={handleLogout} className="btn-logout-variant">ENCERRAR SESSÃO</Button>
-    </div>
-  </div>
-</aside>
+            <div className="profile-actions-wrapper">
+              <Button onClick={handleLogout} className="btn-logout-variant">ENCERRAR SESSÃO</Button>
+            </div>
+          </div>
+        </aside>
       </main>
     </div>
   );

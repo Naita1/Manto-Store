@@ -260,6 +260,17 @@
   line-height: 1.4;
 }
 
+.local-loading-wrapper {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.local-loading-wrapper .loading-global-container {
+  min-height: 200px !important;
+}
 
 @media (max-width: 768px) {
   .help-page-container {

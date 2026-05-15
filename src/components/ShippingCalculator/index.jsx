@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { Loading } from '../Loading';
 import './ShippingCalculator.css';
 
 export function ShippingCalculator({ onShippingSelected }) {
@@ -55,7 +56,7 @@ export function ShippingCalculator({ onShippingSelected }) {
     ];
   };
 
-  const calcular = async () => {
+const calcular = async () => {
     const cepLimpo = cep.replace(/\D/g, '');
     if (cepLimpo.length !== 8) return toast.error("CEP inválido");
 
@@ -70,11 +71,11 @@ export function ShippingCalculator({ onShippingSelected }) {
       
       if (data.erro) {
         toast.error("CEP não encontrado");
+        setLoading(false);
         return;
       }
 
       setCidade(`${data.localidade} - ${data.uf}`);
-
       const opcoesCalculadas = gerarFreteDinamico(data.uf, cepLimpo);
       setOpcoes(opcoesCalculadas);
 
@@ -96,7 +97,7 @@ export function ShippingCalculator({ onShippingSelected }) {
     });
   };
 
-  return (
+return (
     <div className="shipping-container">
       <p className="section-label">CALCULAR FRETE</p>
       <div className="shipping-input-group">
@@ -105,38 +106,47 @@ export function ShippingCalculator({ onShippingSelected }) {
           onChange={handleCepChange} 
           placeholder="00000-000" 
           maxLength="9"
+          disabled={loading}
           onKeyDown={(e) => e.key === 'Enter' && calcular()}
         />
         <button onClick={calcular} disabled={loading}>
-          {loading ? '...' : 'OK'}
+          OK
         </button>
       </div>
 
-      {cidade && (
-        <p className="shipping-city-display">
-          Entregar em: <strong>{cidade}</strong>
-        </p>
-      )}
+      <div className="shipping-feedback-area">
+        {loading && (
+          <div className="shipping-local-loading">
+            <Loading message="Calculando..." />
+          </div>
+        )}
 
-      {opcoes.length > 0 && (
-        <div className="shipping-options">
-          {opcoes.map(opt => (
-            <div 
-              key={opt.id} 
-              className={`shipping-method ${selecionado === opt.id ? 'active' : ''}`}
-              onClick={() => selecionarOpcao(opt)}
-            >
-              <div className="method-info">
-                <span className="method-name">{opt.nome}</span>
-                <span className="method-deadline"> - Até {opt.prazo} dias úteis</span>
+        {cidade && !loading && (
+          <p className="shipping-city-display">
+            Entregar em: <strong>{cidade}</strong>
+          </p>
+        )}
+
+        {opcoes.length > 0 && !loading && (
+          <div className="shipping-options">
+            {opcoes.map(opt => (
+              <div 
+                key={opt.id} 
+                className={`shipping-method ${selecionado === opt.id ? 'active' : ''}`}
+                onClick={() => selecionarOpcao(opt)}
+              >
+                <div className="method-info">
+                  <span className="method-name">{opt.nome}</span>
+                  <span className="method-deadline"> - Até {opt.prazo} dias úteis</span>
+                </div>
+                <strong className="method-price">
+                  {opt.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </strong>
               </div>
-              <strong className="method-price">
-                {opt.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </strong>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
