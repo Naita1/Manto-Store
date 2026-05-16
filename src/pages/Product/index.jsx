@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { doc, getDoc, collection, query, limit, getDocs, updateDoc, setDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
-import { useAuth } from '../../contexts/UseAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../services/firebase';
 import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';

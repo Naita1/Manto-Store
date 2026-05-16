@@ -36,18 +36,6 @@ export const distribuirProdutos = (todos) => {
   };
 };
 
-export const filtrarPorPaisETime = (produtos, pais, time = null) => {
-  if (pais === 'Todos') return produtos;
-  
-  let filtrados = produtos.filter(p => p.category === pais);
-  
-  if (time) {
-    filtrados = filtrados.filter(p => p.team === time);
-  }
-  
-  return filtrados;
-};
-
 export const extrairMenuFiltros = (produtos) => {
   const menu = {};
   
@@ -70,6 +58,6 @@ export const formatarBRL = (valor) => {
   });
 };
 
-export const temProdutosNaCategoria = (produtos, categoria) => {
+export const temProdutosNaCategoria = (produtos) => {
   return produtos && produtos.length > 0;
 };

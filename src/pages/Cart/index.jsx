@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../services/firebase'; 
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { useAuth } from '../../contexts/UseAuth'; 
+import { useAuth } from '../../contexts/AuthContext'; 
 import { Loading } from '../../components/Loading';
 import { ShippingCalculator } from '../../components/ShippingCalculator'; 
 import './Cart.css';
@@ -162,7 +162,6 @@ export function CartPage() {
           )}
         </div>
 
-        {/* LADO DIREITO: RESUMO, FRETE E PAGAMENTO */}
         <div className="cart-summary-section">
           <h2 className="section-subtitle">RESUMO DO PEDIDO</h2>
           
