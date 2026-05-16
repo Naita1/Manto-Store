@@ -142,7 +142,7 @@ export function HomePage() {
 
   const isHome = filtros.pais === 'Todos';
 
-git   if (carregando) {
+  if (carregando) {
     return <Loading message="Buscando mantos exclusivos..." />;
   }
 
