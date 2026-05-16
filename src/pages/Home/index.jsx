@@ -6,6 +6,7 @@ import { db } from '../../services/firebase';
 import { ProductCard } from '../../components/ProductCard';
 import { Sidebar } from '../../components/Sidebar';
 import { Button } from '../../components/Button';
+import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { 
   distribuirProdutos, 
@@ -22,15 +23,15 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
   const navigate = useNavigate();
 
   const handleViewAll = () => {
-      const slug = title
-        .toLowerCase()
-        .trim()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") 
-        .replace(/\s+/g, '-');
+    const slug = title
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") 
+      .replace(/\s+/g, '-');
 
-      navigate(`/colecao/${slug}`);
-    };
+    navigate(`/colecao/${slug}`);
+  };
 
   const scroll = (offset) => {
     if (carouselRef.current) {
@@ -141,8 +142,8 @@ export function HomePage() {
 
   const isHome = filtros.pais === 'Todos';
 
-  if (carregando) {
-    return <div className="home-container"><p className="empty-msg">Carregando catálogo...</p></div>;
+git   if (carregando) {
+    return <Loading message="Buscando mantos exclusivos..." />;
   }
 
   return (
