@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../services/firebase'; 
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../../contexts/UseAuth'; 
 import { Loading } from '../../components/Loading';
+import { ShippingCalculator } from '../../components/ShippingCalculator'; 
 import './Cart.css';
 
 export function CartPage() {
   const [cartItems, setCartItems] = useState([]);
+  const [shipping, setShipping] = useState(null); 
   const [loading, setLoading] = useState(true);
   const { user } = useAuth(); 
   const navigate = useNavigate();
@@ -16,15 +18,18 @@ export function CartPage() {
     if (!user) {
       setLoading(false);
       return;
-    };
+    }
 
     const cartRef = doc(db, "carrinhos", user.uid);
 
     const unsubscribe = onSnapshot(cartRef, (docSnap) => {
       if (docSnap.exists()) {
-        setCartItems(docSnap.data().items || []);
+        const data = docSnap.data();
+        setCartItems(data.items || []);
+        setShipping(data.shipping || null);
       } else {
         setCartItems([]);
+        setShipping(null);
       }
       setLoading(false);
     });
@@ -32,11 +37,20 @@ export function CartPage() {
     return () => unsubscribe();
   }, [user]);
 
+  const handleShippingSelected = useCallback(async (shippingData) => {
+    if (!user) return;
+    const cartRef = doc(db, "carrinhos", user.uid);
+    try {
+      await updateDoc(cartRef, { shipping: shippingData });
+    } catch (error) {
+      console.error("Erro ao atualizar o frete:", error);
+    }
+  }, [user]);
+
   const updateQuantity = async (productId, size, newQuantity) => {
     if (newQuantity < 1) return;
 
     const cartRef = doc(db, "carrinhos", user.uid);
-    
     const updatedItems = cartItems.map(item => 
       (item.productId === productId && item.size === size) 
         ? { ...item, quantity: newQuantity } 
@@ -57,23 +71,26 @@ export function CartPage() {
     );
 
     try {
-      await updateDoc(cartRef, { items: updatedItems });
+      const novoFrete = updatedItems.length === 0 ? null : shipping;
+      await updateDoc(cartRef, { 
+        items: updatedItems,
+        shipping: novoFrete 
+      });
     } catch (error) {
       console.error("Erro ao remover item:", error);
     }
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const itemComFrete = cartItems.find(item => item.shipping);
-  const totalFrete = itemComFrete ? (itemComFrete.shipping.valor || 0) : 0;
+  const totalFrete = shipping ? (shipping.valor || 0) : 0;
   const totalPedido = subtotal + totalFrete;
 
   const formatCurrency = (value) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  const dadosEntrega = cartItems.length > 0 && cartItems[0].shipping
-    ? `${cartItems[0].shipping.cidade} - CEP: ${cartItems[0].shipping.cep}`
+  const dadosEntrega = shipping && shipping.cep
+    ? `${shipping.cidade} - CEP: ${shipping.cep}`
     : 'Nenhum CEP calculado';
 
   if (!user && !loading) {
@@ -112,18 +129,10 @@ export function CartPage() {
                 <img src={item.image} alt={item.title} />
                 
                 <div className="item-info">
-                  <Link 
-                    to={`/produto/${item.productId}`} 
-                    style={{ textDecoration: 'none' }}
-                  >
+                  <Link to={`/produto/${item.productId}`} style={{ textDecoration: 'none' }}>
                     <h3>{item.title}</h3>
                   </Link>
                   <p>TAMANHO: {item.size}</p>
-                  {item.shipping && (
-                    <p style={{fontSize: '0.75rem', color: '#B22222'}}>
-                      Envio via: {item.shipping.tipo}
-                    </p>
-                  )}
                   <strong className="item-price">{formatCurrency(item.price)}</strong>
                   <button 
                     className="btn-remove-item" 
@@ -153,6 +162,7 @@ export function CartPage() {
           )}
         </div>
 
+        {/* LADO DIREITO: RESUMO, FRETE E PAGAMENTO */}
         <div className="cart-summary-section">
           <h2 className="section-subtitle">RESUMO DO PEDIDO</h2>
           
@@ -161,8 +171,8 @@ export function CartPage() {
             <span>{formatCurrency(subtotal)}</span>
           </div>
           
-        <div className="summary-line">
-            <span>FRETE {itemComFrete?.shipping?.tipo && `(${itemComFrete.shipping.tipo})`}:</span>
+          <div className="summary-line">
+            <span>FRETE {shipping?.tipo && `(${shipping.tipo})`}:</span>
             <span>{totalFrete > 0 ? formatCurrency(totalFrete) : 'A calcular...'}</span>
           </div>
 
@@ -171,26 +181,21 @@ export function CartPage() {
             <span style={{ color: 'var(--primary-color, #B22222)' }}>{formatCurrency(totalPedido)}</span>
           </div>
           
-          <div className={`preference-box ${cartItems.length === 0 ? 'disabled-box' : ''}`}>
-            <div className="box-header">PREFERÊNCIAS DE PAGAMENTO</div>
-            <div className="box-content">
-              <span className="icon">💳</span>
-              <div className="box-text">
-                <strong>{cartItems.length === 0 ? 'NENHUM CARTÃO' : 'CARTÃO PADRÃO'}</strong>
-                <p>{cartItems.length === 0 ? 'Seleciona produtos primeiro' : '**** **** **** 1234'}</p>
-              </div>
+          {cartItems.length > 0 && (
+            <div className="summary-shipping-wrapper">
+              <ShippingCalculator 
+                cartItems={cartItems}
+                selectedShipping={shipping}
+                onShippingSelected={handleShippingSelected}
+              />
             </div>
-          </div>
-
-          <div className={`preference-box ${cartItems.length === 0 ? 'disabled-box' : ''}`}>
+          )}
+          
+          <div className="preference-box">
             <div className="box-header">ENDEREÇO DE ENTREGA</div>
             <div className="box-content">
               <div className="box-text">
-                <p>
-                  {cartItems.length === 0 
-                    ? 'Endereço indisponível' 
-                    : dadosEntrega} 
-                </p>
+                <p>{cartItems.length === 0 ? 'Endereço indisponível' : dadosEntrega}</p>
               </div>
             </div>
           </div>

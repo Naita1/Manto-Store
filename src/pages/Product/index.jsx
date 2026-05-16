@@ -34,7 +34,6 @@ export function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [imagemPrincipal, setImagemPrincipal] = useState('');
   
-  const [freteEscolhido, setFreteEscolhido] = useState(null);
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
   const [querPersonalizar, setQuerPersonalizar] = useState(false);
   const [nomePersonalizado, setNomePersonalizado] = useState('');
@@ -53,10 +52,6 @@ export function ProductPage() {
   const categoriaInfo = produto?.category || produto?.categoria;
   const timeInfo = produto?.team || produto?.time;
 
-  const handleShippingChange = useCallback((dadosFrete) => {
-    setFreteEscolhido(dadosFrete);
-  }, []);
-
   const handleAddToCart = useCallback(async (redirect = false) => {
     if (!user) {
       toast.error("Você precisa estar logado para adicionar itens ao carrinho!");
@@ -74,21 +69,6 @@ export function ProductPage() {
     try {
       const cartRef = doc(db, 'carrinhos', user.uid);
       const cartSnap = await getDoc(cartRef);
-      
-      let freteParaAdicionar = freteEscolhido;
-
-      if (!freteParaAdicionar && cartSnap.exists()) {
-        const itemsExistentes = cartSnap.data().items || [];
-        const itemComShipping = itemsExistentes.find(item => item.shipping);
-        
-        if (itemComShipping) {
-          freteParaAdicionar = itemComShipping.shipping;
-        }
-      }
-
-      if (!freteParaAdicionar) {
-        return toast.error('Por favor, calcule o frete para este pedido antes de continuar.');
-      }
 
       const novoItem = {
         productId: id,
@@ -97,7 +77,6 @@ export function ProductPage() {
         image: imagemPrincipal,
         size: tamanhoSelecionado,
         quantity: 1,
-        shipping: freteParaAdicionar,
         personalizacao: querPersonalizar ? { nome: nomePersonalizado, numero: numeroPersonalizado } : null,
         addedAt: new Date()
       };
@@ -116,15 +95,16 @@ export function ProductPage() {
 
         if (itemIndex > -1) {
           items[itemIndex].quantity += 1;
-          items.forEach(item => item.shipping = freteParaAdicionar);
         } else {
           items.push(novoItem);
-          items.forEach(item => item.shipping = freteParaAdicionar);
         }
 
         await updateDoc(cartRef, { items });
       } else {
-        await setDoc(cartRef, { items: [novoItem] });
+        await setDoc(cartRef, { 
+          items: [novoItem],
+          shipping: null 
+        });
       }
 
       if (redirect) {
@@ -136,7 +116,7 @@ export function ProductPage() {
       console.error("Erro ao adicionar ao carrinho:", error);
       toast.error("Erro ao salvar no banco de dados.");
     }
-  }, [user, tamanhosDisponiveis, tamanhoSelecionado, freteEscolhido, querPersonalizar, nomePersonalizado, numeroPersonalizado, produto, imagemPrincipal, id, navigate]);
+  }, [user, tamanhosDisponiveis, tamanhoSelecionado, querPersonalizar, nomePersonalizado, numeroPersonalizado, produto, imagemPrincipal, id, navigate]);
    
   const scrollCarousel = useCallback((offset) => {
     carouselRef.current?.scrollBy({ left: offset, behavior: 'smooth' });
@@ -328,7 +308,7 @@ export function ProductPage() {
             </div>
           </div>
 
-          <ShippingCalculator onShippingSelected={handleShippingChange} />
+          <ShippingCalculator />
 
           <div className="action-buttons">
             <button className="btn-personalize" onClick={() => setQuerPersonalizar(!querPersonalizar)}>

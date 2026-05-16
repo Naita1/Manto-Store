@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { Loading } from '../Loading';
 import './ShippingCalculator.css';
 
-export function ShippingCalculator({ onShippingSelected }) {
+export function ShippingCalculator({ cartItems = [], onShippingSelected, selectedShipping }) {
   const [cep, setCep] = useState('');
   const [loading, setLoading] = useState(false);
   const [opcoes, setOpcoes] = useState([]);
-  const [selecionado, setSelecionado] = useState(null);
   const [cidade, setCidade] = useState('');
+  const [selecionadoId, setSelecionadoId] = useState(null);
+
+  useEffect(() => {
+    setSelecionadoId(selectedShipping?.id || null);
+    
+    if (selectedShipping?.cep && !cep) {
+      setCep(selectedShipping.cep);
+      if (selectedShipping.cidade) setCidade(selectedShipping.cidade);
+    }
+  }, [selectedShipping]);
 
   const handleCepChange = (e) => {
     let v = e.target.value.replace(/\D/g, '');
@@ -16,7 +25,7 @@ export function ShippingCalculator({ onShippingSelected }) {
     setCep(v);
   };
 
-  const gerarFreteDinamico = (uf, cepNumerico) => {
+  const gerarFreteDinamico = useCallback((uf, cepNumerico, items) => {
     const regrasRegiao = {
       SP: { basePreco: 12.0, basePrazo: 2 },
       SUDESTE: { ufs: ['RJ', 'MG', 'ES'], basePreco: 18.5, basePrazo: 4 },
@@ -36,68 +45,91 @@ export function ShippingCalculator({ onShippingSelected }) {
       }
     }
 
+    let pesoTotalKg = 0;
+    let volumeTotalCm3 = 0;
+
+    const listaProdutos = items.length > 0 ? items : [{ quantity: 1, weight: 0.2, length: 25, width: 20, height: 2 }];
+
+    listaProdutos.forEach(item => {
+      const qtd = item.quantity || 1;
+      pesoTotalKg += (item.weight || 0.2) * qtd;
+      const l = item.length || 25;
+      const w = item.width || 20;
+      const h = item.height || 2;
+      volumeTotalCm3 += (l * w * h) * qtd;
+    });
+
     const taxaCep = parseInt(cepNumerico.slice(-3)) / 100;
-    const valorPac = regra.basePreco + taxaCep;
-    const valorSedex = valorPac * 1.6 + 15;
+    const adicionalPeso = pesoTotalKg * 2.5; 
+    const adicionalVolume = (volumeTotalCm3 / 5000) * 1.5; 
+
+    const precoBaseCalculado = regra.basePreco + taxaCep + adicionalPeso + adicionalVolume;
 
     return [
-      { 
-        id: 'pac', 
-        nome: 'PAC', 
-        preco: valorPac, 
-        prazo: regra.basePrazo + 4 
-      },
-      { 
-        id: 'sedex', 
-        nome: 'SEDEX', 
-        preco: valorSedex, 
-        prazo: regra.basePrazo 
-      }
+      { id: 'pac', nome: 'PAC', preco: precoBaseCalculado, prazo: regra.basePrazo + 4 },
+      { id: 'sedex', nome: 'SEDEX', preco: precoBaseCalculado * 1.5 + 10, prazo: regra.basePrazo }
     ];
-  };
+  }, []);
 
-const calcular = async () => {
+  const calcular = async (exibirErro = true, idForcado = null) => {
     const cepLimpo = cep.replace(/\D/g, '');
-    if (cepLimpo.length !== 8) return toast.error("CEP inválido");
+    if (cepLimpo.length !== 8) {
+      if (exibirErro) toast.error("CEP inválido");
+      return;
+    }
 
-    setLoading(true);
-    setOpcoes([]);
-    setCidade('');
-    setSelecionado(null);
+    if (exibirErro) setLoading(true);
 
     try {
       const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
       const data = await res.json();
       
       if (data.erro) {
-        toast.error("CEP não encontrado");
+        if (exibirErro) toast.error("CEP não encontrado");
         setLoading(false);
         return;
       }
 
-      setCidade(`${data.localidade} - ${data.uf}`);
-      const opcoesCalculadas = gerarFreteDinamico(data.uf, cepLimpo);
+      const cidadeFormatada = `${data.localidade} - ${data.uf}`;
+      setCidade(cidadeFormatada);
+      
+      const opcoesCalculadas = gerarFreteDinamico(data.uf, cepLimpo, cartItems);
       setOpcoes(opcoesCalculadas);
 
+      const idAlvo = idForcado || selecionadoId || selectedShipping?.id;
+      if (idAlvo && onShippingSelected) {
+        const opcaoCorrespondente = opcoesCalculadas.find(opt => opt.id === idAlvo);
+        if (opcaoCorrespondente) {
+          onShippingSelected({
+            id: opcaoCorrespondente.id,
+            tipo: opcaoCorrespondente.nome,
+            valor: opcaoCorrespondente.preco,
+            prazo: opcaoCorrespondente.prazo,
+            cep: cep,
+            cidade: cidadeFormatada
+          });
+        }
+      }
     } catch {
-      toast.error("Erro ao buscar CEP");
+      if (exibirErro) toast.error("Erro ao buscar CEP");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length === 8 && opcoes.length > 0 && cartItems.length > 0) {
+      calcular(false); 
+    }
+  }, [cartItems]);
+
   const selecionarOpcao = (opt) => {
-    setSelecionado(opt.id);
-    onShippingSelected({
-      tipo: opt.nome,
-      valor: opt.preco,
-      prazo: opt.prazo,
-      cep: cep,
-      cidade: cidade
-    });
+    setSelecionadoId(opt.id);
+    calcular(false, opt.id);
   };
 
-return (
+  return (
     <div className="shipping-container">
       <p className="section-label">CALCULAR FRETE</p>
       <div className="shipping-input-group">
@@ -107,9 +139,9 @@ return (
           placeholder="00000-000" 
           maxLength="9"
           disabled={loading}
-          onKeyDown={(e) => e.key === 'Enter' && calcular()}
+          onKeyDown={(e) => e.key === 'Enter' && calcular(true)}
         />
-        <button onClick={calcular} disabled={loading}>
+        <button onClick={() => calcular(true)} disabled={loading}>
           OK
         </button>
       </div>
@@ -132,7 +164,7 @@ return (
             {opcoes.map(opt => (
               <div 
                 key={opt.id} 
-                className={`shipping-method ${selecionado === opt.id ? 'active' : ''}`}
+                className={`shipping-method ${selecionadoId === opt.id ? 'active' : ''}`}
                 onClick={() => selecionarOpcao(opt)}
               >
                 <div className="method-info">
