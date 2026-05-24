@@ -1,18 +1,18 @@
 .shipping-container {
-  background-color: var(--card-color);
-  border-radius: var(--border-radius); 
   padding: 1.5rem;
   margin-bottom: 2.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: var(--border-radius);
+  background-color: var(--card-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .shipping-container .section-label {
-  font-size: 0.85rem;
   margin-bottom: 0.8rem;
-  letter-spacing: 0.05rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
+  font-size: 0.85rem;
   font-weight: 600;
+  letter-spacing: 0.05rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .shipping-input-group {
@@ -24,9 +24,9 @@
 .shipping-input-group input {
   flex: 1;
   padding: 0.8rem 1rem;
-  background-color: var(--bg-color);
   border: 1px solid #333;
   border-radius: 8px;
+  background-color: var(--bg-color);
   color: var(--text-color);
   font-size: 0.95rem;
   outline: none;
@@ -38,18 +38,18 @@
 }
 
 .shipping-input-group button {
+  padding: 0 1.5rem;
+  border: none;
+  border-radius: 8px;
   background-color: var(--primary-color);
   color: var(--text-color);
-  border: none;
-  padding: 0 1.5rem;
-  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
   transition: background-color var(--transition);
 }
 
 .shipping-input-group button:hover:not(:disabled) {
-  background-color: #901A1A;
+  background-color: #901a1a;
 }
 
 .shipping-input-group button:disabled {
@@ -57,12 +57,32 @@
   cursor: not-allowed;
 }
 
+.shipping-feedback-area {
+  margin-top: 1.5rem;
+}
+
+.shipping-local-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shipping-city-display {
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+.shipping-city-display strong {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
 .shipping-options {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  margin-top: 1.5rem;
-  animation: slideDown 0.3s ease forwards; 
+  animation: slideDown 0.3s ease forwards;
 }
 
 .shipping-method {
@@ -70,9 +90,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.2rem;
-  background-color: var(--bg-color);
   border: 1px solid #333;
   border-radius: 8px;
+  background-color: var(--bg-color);
   cursor: pointer;
   transition: all var(--transition);
 }
@@ -88,16 +108,28 @@
   box-shadow: 0 0 0 1px var(--primary-color);
 }
 
-.shipping-method span {
+.method-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.method-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.method-deadline {
   font-size: 0.9rem;
   color: var(--text-color);
   font-weight: 500;
 }
 
-.shipping-method strong {
-  color: var(--primary-color);
+.method-price {
   font-size: 1.1rem;
   font-weight: 700;
+  color: var(--primary-color);
 }
 
 @keyframes slideDown {
@@ -119,7 +151,7 @@
   .shipping-input-group button {
     padding: 0.8rem;
   }
-  
+
   .shipping-method {
     flex-direction: column;
     align-items: flex-start;

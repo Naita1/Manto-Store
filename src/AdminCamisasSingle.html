@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Camisas - Simples</title>
+  <style>
+    body {
+      background-color: #0d0d0f;
+      color: #f3f4f6;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+    }
+    .admin-box {
+      background-color: #16161a;
+      border: 1px solid #232329;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    h2 { margin: 0 0 0.2rem 0; color: #fff; }
+    p { color: #8a8a93; margin: 0 0 1.5rem 0; font-size: 0.9rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #a1a1aa; }
+    input, textarea {
+      background-color: #1f1f24; border: 1px solid #2d2d35; border-radius: 6px;
+      padding: 0.75rem; color: #fff; font-size: 0.95rem; box-sizing: border-box; width: 100%;
+    }
+    input:focus, textarea:focus { outline: none; border-color: #5c0612; }
+    .sizes-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .btn-size {
+      background-color: #1f1f24; border: 1px solid #2d2d35; color: #fff;
+      padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+    }
+    .btn-size.active { background-color: #5c0612; border-color: #7f0b1a; }
+    .img-input-group { display: flex; gap: 0.5rem; }
+    .btn-add { background-color: #2d2d35; color: #fff; border: none; padding: 0 1rem; border-radius: 6px; cursor: pointer; }
+    .img-list { margin-top: 0.5rem; background: #1f1f24; padding: 0.5rem; border-radius: 6px; max-height: 100px; overflow-y: auto; }
+    .img-item { display: flex; justify-content: space-between; background: #16161a; padding: 0.4rem; border-radius: 4px; margin-bottom: 0.4rem; font-size: 0.8rem; }
+    .btn-submit {
+      background-color: #5c0612; color: #fff; border: none; padding: 0.9rem; width: 100%;
+      border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 1rem;
+    }
+    .btn-submit:hover { background-color: #7f0b1a; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .toast { position: fixed; top: 20px; right: 20px; padding: 0.8rem 1.2rem; border-radius: 6px; color: #fff; font-size: 0.9rem; display: none; }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast"></div>
+
+  <div class="admin-box">
+    <h2>Cadastrar Manto</h2>
+    <p>HTML de arquivo único para teste rápido</p>
+
+    <form id="productForm">
+      <div class="form-group">
+        <label>Título do Produto *</label>
+        <input type="text" id="title" placeholder="Ex: Camisa Flamengo Away 2026" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Time *</label>
+          <input type="text" id="team" placeholder="Ex: Flamengo" required>
+        </div>
+        <div class="form-group">
+          <label>Categoria *</label>
+          <input type="text" id="category" placeholder="Ex: Brasil" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Preço (R$) *</label>
+          <input type="number" step="0.01" id="price" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label>Slug *</label>
+          <input type="text" id="slug" placeholder="camisa-flamengo-away-2026" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Descrição *</label>
+        <textarea id="description" placeholder="Especificações..." rows="2" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Tamanhos Disponíveis</label>
+        <div class="sizes-row" id="sizesContainer"></div>
+      </div>
+
+      <div class="form-group">
+        <label>URLs das Imagens</label>
+        <div class="img-input-group">
+          <input type="text" id="imgInput" placeholder="Cole a URL da imagem">
+          <button type="button" id="btnAddImg" class="btn-add">+</button>
+        </div>
+        <div id="imgList" class="img-list" style="display: none;"></div>
+      </div>
+
+      <button type="submit" id="btnSubmit" class="btn-submit">Salvar no Firestore</button>
+    </form>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // ⚠️ SUBSTITUA COM OS SEUS DADOS REAIS DO FIREBASE AQUI:
+// Configuração oficial do seu projeto Manto Store
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgW1MntPmcBPiC-0CWBo7zfK3WxVW83NM",
+      authDomain: "manto-store.firebaseapp.com",
+      projectId: "manto-store",
+      storageBucket: "manto-store.firebasestorage.app",
+      messagingSenderId: "800829111295",
+      appId: "1:800829111295:web:93c97f2ab02356fbcdc5ca",
+      measurementId: "G-L3CKG5ME54"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Estados locais controlados na mão
+    const availableSizes = ["PP", "P", "M", "G", "GG", "XG"];
+    let selectedSizes = [];
+    let images = [];
+
+    // Renderizar botões de tamanho
+    const sizesContainer = document.getElementById("sizesContainer");
+    availableSizes.forEach(size => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-size";
+      btn.textContent = size;
+      btn.onclick = () => {
+        if (selectedSizes.includes(size)) {
+          selectedSizes = selectedSizes.filter(s => s !== size);
+          btn.classList.remove("active");
+        } else {
+          selectedSizes.push(size);
+          btn.classList.add("active");
+        }
+      };
+      sizesContainer.appendChild(btn);
+    });
+
+    // Gerar Slug automático
+    document.getElementById("title").addEventListener("blur", (e) => {
+      const slugInput = document.getElementById("slug");
+      if (!slugInput.value && e.target.value) {
+        slugInput.value = e.target.value
+          .toLowerCase()
+          .trim()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/[\s_]+/g, "-")
+          .replace(/-+/g, "-");
+      }
+    });
+
+    // Gerenciar lista de imagens
+    const imgList = document.getElementById("imgList");
+    document.getElementById("btnAddImg").onclick = () => {
+      const input = document.getElementById("imgInput");
+      if (!input.value.trim()) return;
+      
+      images.push(input.value.trim());
+      input.value = "";
+      renderImages();
+    };
+
+    window.removeImg = (index) => {
+      images.splice(index, 1);
+      renderImages();
+    };
+
+    function renderImages() {
+      imgList.innerHTML = "";
+      if (images.length === 0) {
+        imgList.style.display = "none";
+        return;
+      }
+      imgList.style.display = "block";
+      images.forEach((url, i) => {
+        imgList.innerHTML += `
+          <div class="img-item">
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%;">${url}</span>
+            <button type="button" onclick="removeImg(${i})" style="background:none; border:none; color:#ef4444; cursor:pointer;">&times;</button>
+          </div>`;
+      });
+    }
+
+    // Feedback visual toast
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.style.background = isError ? "#7f1d1d" : "#065f46";
+      toast.style.borderLeft = isError ? "4px solid #f87171" : "4px solid #34d399";
+      toast.style.display = "block";
+      setTimeout(() => toast.style.display = "none", 4000);
+    }
+
+    // Envio para o Firestore
+    document.getElementById("productForm").onsubmit = async (e) => {
+      e.preventDefault();
+      
+      if (images.length === 0 || selectedSizes.length === 0) {
+        showToast("Adicione pelo menos 1 imagem e 1 tamanho!", true);
+        return;
+      }
+
+      const btnSubmit = document.getElementById("btnSubmit");
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Salvando...";
+
+      const productData = {
+        title: document.getElementById("title").value.trim(),
+        team: document.getElementById("team").value.trim(),
+        category: document.getElementById("category").value.trim(),
+        price: parseFloat(document.getElementById("price").value),
+        description: document.getElementById("description").value.trim(),
+        slug: document.getElementById("slug").value.trim(),
+        image: images,
+        sizes: selectedSizes
+      };
+
+      try {
+        await addDoc(collection(db, "produtos"), productData);
+        showToast("Camisa salva com sucesso!");
+        
+        // Limpa tudo
+        document.getElementById("productForm").reset();
+        images = [];
+        selectedSizes = [];
+        renderImages();
+        document.querySelectorAll(".btn-size").forEach(b => b.classList.remove("active"));
+      } catch (error) {
+        console.error(error);
+        showToast("Erro ao salvar. Olhe o console do navegador.", true);
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Salvar no Firestore";
+      }
+    };
+  </script>
+</body>
+</html>

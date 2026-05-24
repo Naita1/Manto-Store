@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext'; 
-
-import { Input } from '../Input';
-import { Button } from '../Button';
-import { Loading } from '../Loading'; 
 import toast from 'react-hot-toast';
 
+import { useAuth } from '../../contexts/AuthContext';
+import { Input } from '../Input';
+import { Button } from '../Button';
+import { Loading } from '../Loading';
 import './RegisterCard.css';
 
-const registerErrorMessages = {
+
+const REGISTER_ERROR_MESSAGES = {
   'auth/email-already-in-use': 'Este e-mail já está em uso.',
   'auth/invalid-email': 'E-mail inválido.',
   'auth/weak-password': 'A senha deve ter pelo menos 6 caracteres.',
-  'auth/network-request-failed': 'Erro de conexão com o servidor.'
+  'auth/network-request-failed': 'Erro de conexão com o servidor.',
 };
 
+
 export function RegisterCard() {
-  const navigate = useNavigate(); 
+
+  const navigate = useNavigate();
   const { signUp } = useAuth();
 
   const [name, setName] = useState('');
@@ -39,9 +41,9 @@ export function RegisterCard() {
 
   const getStrengthColor = () => {
     if (metCriteriaCount === 0) return 'transparent';
-    if (metCriteriaCount <= 2) return '#ff4d4d'; 
-    if (metCriteriaCount === 3) return '#ffa64d'; 
-    if (metCriteriaCount === 4) return '#ffd24d'; 
+    if (metCriteriaCount <= 2) return '#ff4d4d';
+    if (metCriteriaCount === 3) return '#ffa64d';
+    if (metCriteriaCount === 4) return '#ffd24d';
     return '#51cf66';
   };
 
@@ -65,27 +67,31 @@ export function RegisterCard() {
     try {
       await signUp(email, password, name);
       toast.success('Conta criada! Bem-vindo à Manto Store!');
-      
-      setName(''); setEmail(''); setPassword(''); setConfirmPassword('');
-      setTimeout(() => {
-        navigate('/login'); 
-      }, 2000);
 
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
-      console.error("Erro no cadastro:", error.code);
-      const friendlyMessage = registerErrorMessages[error.code] || 'Erro ao criar conta. Tente novamente.';
+      console.error('Erro no cadastro:', error.code);
+      const friendlyMessage =
+        REGISTER_ERROR_MESSAGES[error.code] ||
+        'Erro ao criar conta. Tente novamente.';
       toast.error(friendlyMessage);
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
   return (
-    <div className='card-container'>
+    <div className="card-container">
       {loading && <Loading message="Criando sua conta..." />}
-      
-      <h2 className='card-title'>Primeiro Acesso</h2>
-      
-      <form className='card-form' onSubmit={handleRegister}>
+
+      <h2 className="card-title">Primeiro Acesso</h2>
+      <form className="card-form" onSubmit={handleRegister}>
         <Input
           id="full-name"
           label="Nome"
@@ -123,20 +129,23 @@ export function RegisterCard() {
           {password.length > 0 && (
             <div className="strength-indicator">
               <div className="strength-bar-container">
-                <div 
-                  className="strength-bar-fill" 
-                  style={{ 
-                    width: `${(metCriteriaCount / 5) * 100}%`, 
-                    backgroundColor: getStrengthColor() 
+                <div
+                  className="strength-bar-fill"
+                  style={{
+                    width: `${(metCriteriaCount / 5) * 100}%`,
+                    backgroundColor: getStrengthColor(),
                   }}
-                ></div>
+                />
               </div>
-              <span className="strength-text" style={{ color: getStrengthColor() }}>
+              <span
+                className="strength-text"
+                style={{ color: getStrengthColor() }}
+              >
                 {getStrengthText()}
               </span>
             </div>
           )}
-          
+
           {password.length > 0 && !isPasswordStrong && (
             <p className="password-hint">
               Dica: Use 8+ caracteres, letras (A, a), números e símbolos (!@#$).
@@ -155,19 +164,19 @@ export function RegisterCard() {
           disabled={loading}
         />
 
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={loading || !isPasswordStrong || password !== confirmPassword}
           style={{ marginTop: '1rem' }}
         >
           Cadastrar
         </Button>
       </form>
-      
+
       <div className="login-section">
         <p className="login-text">Já tem cadastro?</p>
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           className="button-secondary"
           onClick={() => navigate('/login')}
           disabled={loading}

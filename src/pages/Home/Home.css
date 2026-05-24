@@ -126,7 +126,7 @@
 }
 
 .btn-filtros:hover { width: 220px; background: #e50914; }
-.btn-filtros .icon { min-width: 50px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+.btn-filtros .icon { min-width: 50px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem;  }
 
 .showcase-section { 
   max-width: 1600px; 
