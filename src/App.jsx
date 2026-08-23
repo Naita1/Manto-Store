@@ -16,6 +16,7 @@ import { SearchPage } from './pages/Search';
 import { LoginPage } from './pages/Login';
 import { CartPage } from './pages/Cart';
 import { HomePage } from './pages/Home';
+import './styles/global.css';
 
 function App() {
   return (

@@ -25,3 +25,4 @@ dist-ssr
 *.sln
 *.sw?
 admincamisasSingle/
+src/AdminCamisasSingle.html
