@@ -50,7 +50,7 @@ const IconHelp = () => (
 
 const Logo = () => (
   <div className="flex flex-col items-center justify-center leading-none select-none group">
-    <span className="font-serif text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent transform group-hover:scale-105 transition-transform duration-300 ease-out">
+    <span className="font-serif text-3xl md:text-4xl font-bold tracking-tight bg-linear-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent transform group-hover:scale-105 transition-transform duration-300 ease-out">
       Manto
     </span>
     <span className="text-[10px] md:text-xs font-semibold tracking-[0.35em] text-primary uppercase mt-0.5 group-hover:tracking-[0.45em] transition-all duration-300 ease-out">

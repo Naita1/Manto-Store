@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { Loading } from '../Loading';
-import './LoginCard.css';
 
 const LOGIN_ERROR_MESSAGES = {
   'auth/invalid-credential':      'E-mail ou senha incorretos.',
@@ -66,10 +65,19 @@ export function LoginCard() {
   if (loading) return <Loading message="Autenticando..." />;
 
   return (
-    <div className="card-container">
-      <h2 className="card-title">Já sou cadastrado</h2>
+    <div className="relative w-full max-w-sm p-8 rounded-3xl bg-[#161616]/80 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 hover:border-white/20 group">
+      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-20 bg-primary/25 rounded-full blur-2xl pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-70" />
 
-      <form className="card-form" onSubmit={handleLogin}>
+      <div className="relative mb-8 text-center">
+        <h2 className="text-xl font-bold uppercase tracking-widest text-white">
+          Já sou cadastrado
+        </h2>
+        <p className="mt-1 text-xs text-neutral-400">
+          Acesse sua conta para continuar
+        </p>
+      </div>
+
+      <form className="relative flex flex-col gap-4" onSubmit={handleLogin}>
         <Input
           id="email-login"
           label="E-mail"
@@ -90,25 +98,27 @@ export function LoginCard() {
           required
         />
 
-        <button
-          type="button"
-          className="forgot-password-btn"
-          onClick={handleForgotPassword}
-          disabled={loading}
-        >
-          Esqueci minha senha
-        </button>
+        <div className="flex justify-end -mt-1 mb-2">
+          <button
+            type="button"
+            className="text-xs text-neutral-400 hover:text-primary transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={handleForgotPassword}
+            disabled={loading}
+          >
+            Esqueci minha senha
+          </button>
+        </div>
 
         <Button type="submit" disabled={loading}>
           Entrar
         </Button>
       </form>
 
-      <div className="register-section">
-        <p className="register-text">Não possui uma conta?</p>
+      <div className="relative mt-8 pt-6 border-t border-white/10 text-center flex flex-col gap-3">
+        <span className="text-xs text-neutral-400">Ainda não tem acesso?</span>
         <Button
           type="button"
-          className="button-secondary"
+          className="bg-transparent! border border-primary text-primary! hover:bg-primary! hover:text-white! shadow-none hover:shadow-lg hover:shadow-primary/20"
           onClick={() => navigate('/register')}
           disabled={loading}
         >
