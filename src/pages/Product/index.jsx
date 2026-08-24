@@ -219,7 +219,7 @@ export function ProductPage() {
   if (!produto) {
     return (
       <div className="min-h-screen w-full bg-[#0B0B0D] text-[#ECECEE] font-sans flex items-center justify-center p-4">
-        <div className="text-center p-12 bg-[#131316] border border-white/[0.08] rounded-2xl max-w-md w-full">
+        <div className="text-center p-12 bg-[#131316] border border-white/8 rounded-2xl max-w-md w-full">
           <p className="text-lg text-neutral-300 font-medium">Produto não encontrado.</p>
         </div>
       </div>
@@ -276,7 +276,7 @@ export function ProductPage() {
                   className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border transition-all duration-300 ease-out cursor-pointer bg-neutral-900 active:scale-95 transform-gpu ${
                     imagemPrincipal === img 
                       ? 'border-[#9C2A32] ring-2 ring-[#9C2A32]/40 scale-[1.03]' 
-                      : 'border-white/8 opacity-60 hover:opacity-100 hover:border-white/[0.2] hover:scale-[1.02]'
+                      : 'border-white/8 opacity-60 hover:opacity-100 hover:border-white/20 hover:scale-[1.02]'
                   }`}
                 >
                   <img
@@ -353,10 +353,10 @@ export function ProductPage() {
                     <button
                       key={size}
                       type="button"
-                      className={`py-2 px-3.5 min-w-[52px] rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 ease-out cursor-pointer active:scale-95 transform-gpu ${
+                      className={`py-2 px-3.5 min-w-13 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 ease-out cursor-pointer active:scale-95 transform-gpu ${
                         tamanhoSelecionado === size 
                           ? 'bg-[#9C2A32] text-white shadow-lg shadow-[#9C2A32]/30 border border-[#9C2A32] scale-105' 
-                          : 'bg-[#131316] text-neutral-300 border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15] hover:text-white'
+                          : 'bg-[#131316] text-neutral-300 border border-white/8 hover:bg-white/6 hover:border-white/15 hover:text-white'
                       }`}
                       onClick={() => setTamanhoSelecionado(size)}
                     >
@@ -374,7 +374,7 @@ export function ProductPage() {
                 className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 ease-out flex items-center justify-center gap-2 cursor-pointer border active:scale-[0.98] transform-gpu ${
                   querPersonalizar 
                     ? 'bg-[#9C2A32]/15 border-[#9C2A32] text-[#9C2A32] shadow-md shadow-[#9C2A32]/10' 
-                    : 'border-white/[0.12] bg-[#131316] text-neutral-200 hover:bg-white/[0.05] hover:border-white/[0.2]'
+                    : 'border-white/12 bg-[#131316] text-neutral-200 hover:bg-white/5 hover:border-white/20'
                 }`}
                 onClick={() => setQuerPersonalizar(!querPersonalizar)}
               >
@@ -388,7 +388,7 @@ export function ProductPage() {
                 querPersonalizar ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'
               }`}>
                 <div className="overflow-hidden">
-                  <div className="p-3.5 rounded-xl bg-[#131316] border border-white/[0.08] space-y-2.5">
+                  <div className="p-3.5 rounded-xl bg-[#131316] border border-white/8 space-y-2.5">
                     <div className="flex flex-col sm:flex-row gap-2.5">
                       <input
                         type="text"
@@ -396,7 +396,7 @@ export function ProductPage() {
                         value={nomePersonalizado}
                         onChange={(e) => setNomePersonalizado(e.target.value.toUpperCase())}
                         maxLength="15"
-                        className="flex-[2] py-2 px-3 rounded-lg border border-white/[0.1] bg-[#0B0B0D] text-white text-xs outline-none uppercase placeholder:text-neutral-500 focus:border-[#9C2A32] transition-colors duration-200"
+                        className="flex-2 py-2 px-3 rounded-lg border border-white/10 bg-[#0B0B0D] text-white text-xs outline-none uppercase placeholder:text-neutral-500 focus:border-[#9C2A32] transition-colors duration-200"
                       />
                       <input
                         type="text"
@@ -404,7 +404,7 @@ export function ProductPage() {
                         value={numeroPersonalizado}
                         onChange={(e) => setNumeroPersonalizado(e.target.value.replace(/\D/g, ''))}
                         maxLength="2"
-                        className="flex-1 py-2 px-3 rounded-lg border border-white/[0.1] bg-[#0B0B0D] text-white text-xs outline-none text-center placeholder:text-neutral-500 focus:border-[#9C2A32] transition-colors duration-200"
+                        className="flex-1 py-2 px-3 rounded-lg border border-white/10 bg-[#0B0B0D] text-white text-xs outline-none text-center placeholder:text-neutral-500 focus:border-[#9C2A32] transition-colors duration-200"
                       />
                     </div>
                   </div>
@@ -438,9 +438,9 @@ export function ProductPage() {
             </div>
           </div>
         </section>
-        <section className="w-full space-y-6 mb-16 border-t border-white/[0.06] pt-10">          
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-[#131316] border border-white/[0.08] rounded-2xl">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+        <section className="w-full space-y-6 mb-16 border-t border-white/6 pt-10">          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-[#131316] border border-white/8 rounded-2xl">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/4">
               <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h10M7 12h10M7 17h10" />
@@ -452,7 +452,7 @@ export function ProductPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/4">
               <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -464,7 +464,7 @@ export function ProductPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/4">
               <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -476,7 +476,7 @@ export function ProductPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/4">
               <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -494,11 +494,11 @@ export function ProductPage() {
               const content = item.contentKey === "description" ? (produto.description || item.fallback) : item.content;
 
               return (
-                <div key={item.id} className="bg-[#131316] border border-white/[0.08] rounded-2xl overflow-hidden transform-gpu transition-colors duration-200 hover:border-white/[0.15]">
+                <div key={item.id} className="bg-[#131316] border border-white/8 rounded-2xl overflow-hidden transform-gpu transition-colors duration-200 hover:border-white/15">
                   <button
                     type="button"
-                    className={`w-full px-5 py-4 flex justify-between items-center font-semibold text-xs sm:text-sm tracking-wider uppercase text-neutral-200 text-left transition-colors duration-200 cursor-pointer hover:bg-white/[0.02] ${
-                      isOpen ? 'border-b border-white/[0.06]' : ''
+                    className={`w-full px-5 py-4 flex justify-between items-center font-semibold text-xs sm:text-sm tracking-wider uppercase text-neutral-200 text-left transition-colors duration-200 cursor-pointer hover:bg-white/2 ${
+                      isOpen ? 'border-b border-white/6' : ''
                     }`}
                     onClick={() => toggleAccordion(index)}
                     aria-expanded={isOpen}
@@ -533,7 +533,7 @@ export function ProductPage() {
             {produtosRecomendados.length > 0 && (
               <button 
                 type="button"
-                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/[0.1] rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
+                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/10 rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
                 onClick={() => scrollCarousel(-300)} 
                 aria-label="Produtos anteriores"
               >
@@ -549,10 +549,10 @@ export function ProductPage() {
                 produtosRecomendados.map((item) => (
                   <div 
                     key={item.id} 
-                    className="bg-[#131316] border border-white/[0.08] rounded-2xl w-[190px] sm:w-[220px] shrink-0 flex flex-col cursor-pointer overflow-hidden transition-all duration-300 ease-out hover:border-white/[0.25] hover:-translate-y-1 hover:shadow-xl snap-start group transform-gpu" 
+                    className="bg-[#131316] border border-white/8 rounded-2xl w-47.5 sm:w-55 shrink-0 flex flex-col cursor-pointer overflow-hidden transition-all duration-300 ease-out hover:border-white/25 hover:-translate-y-1 hover:shadow-xl snap-start group transform-gpu" 
                     onClick={() => navigate(`/produto/${item.id}`)}
                   >
-                    <div className="bg-neutral-900 h-[190px] sm:h-[220px] w-full flex justify-center items-center overflow-hidden relative">
+                    <div className="bg-neutral-900 h-47.5 sm:h-55 w-full flex justify-center items-center overflow-hidden relative">
                       <img
                         src={item.image?.[0] || FALLBACK_IMAGE}
                         alt={item.title || "Produto Recomendado"}
@@ -579,7 +579,7 @@ export function ProductPage() {
             {produtosRecomendados.length > 0 && (
               <button 
                 type="button"
-                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/[0.1] rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
+                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/10 rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
                 onClick={() => scrollCarousel(300)} 
                 aria-label="Próximos produtos"
               >
@@ -591,14 +591,14 @@ export function ProductPage() {
         </section>
         {isLightboxOpen && (
           <div 
-            className={`fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[1000] cursor-pointer p-4 transform-gpu transition-opacity duration-200 ${
+            className={`fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-1000 cursor-pointer p-4 transform-gpu transition-opacity duration-200 ${
               lightboxVisible ? 'opacity-100' : 'opacity-0'
             }`} z-1000
             onClick={closeLightbox}
           >
             <button 
               type="button"
-              className="absolute top-4 right-6 text-3xl text-neutral-400 hover:text-white transition-colors duration-200 font-light z-[1001]"
+              className="absolute top-4 right-6 text-3xl text-neutral-400 hover:text-white transition-colors duration-200 font-light z-1001"
               onClick={closeLightbox}
             >
               &times;

@@ -72,6 +72,7 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
                 image={p.image[0]}
                 veioDeFiltro={veioDeFiltro} 
                 filtroTimeAtivo={filtroTimeAtivo}
+                className={isGrid ? 'w-full' : 'w-36.25 sm:w-45 md:w-52.5 shrink-0'}
               />
             ))
           )}
