@@ -5,6 +5,125 @@ import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit } from
 import { useNavigate } from 'react-router-dom';
 import { Loading } from '../../components/Loading';
 
+function UserProfileForm({ userData, isEditing, onSave }) {
+  const [formData, setFormData] = useState(userData);
+
+  useEffect(() => {
+    setFormData(userData);
+  }, [userData, isEditing]);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    onSave(formData);
+  };
+
+  return (
+    <section className={`lg:col-span-7 bg-[#131316] border rounded-2xl p-6 sm:p-7 flex flex-col justify-between h-full transition-all duration-300 ease-out ${
+      isEditing ? 'border-amber-500/30 bg-[#151519]' : 'border-white/8'
+    }`}>
+      <div>
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/6">
+          <div className="flex items-center gap-2.5">
+            <div className={`p-1.5 rounded-lg transition-colors duration-200 ${isEditing ? 'bg-amber-500/10 text-amber-400' : 'bg-[#9C2A32]/10 text-[#9C2A32]'}`}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-300">
+              Informações Pessoais
+            </h2>
+          </div>
+          
+          <span className={`text-[11px] text-amber-400/90 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 transition-all duration-200 ease-out ${
+            isEditing ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-1 scale-95 pointer-events-none'
+          }`}>
+            Modo de Edição
+          </span>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                Nome Completo
+              </label>
+              <input 
+                disabled={!isEditing} 
+                value={formData.name || ''} 
+                onChange={e => handleChange('name', e.target.value)} 
+                placeholder="Seu nome" 
+                className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                E-mail
+              </label>
+              <input 
+                disabled={!isEditing} 
+                value={formData.email || ''} 
+                onChange={e => handleChange('email', e.target.value)} 
+                placeholder="seu@email.com" 
+                className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                Telefone
+              </label>
+              <input 
+                disabled={!isEditing} 
+                value={formData.phone || ''} 
+                onChange={e => handleChange('phone', e.target.value)} 
+                placeholder="(00) 00000-0000" 
+                className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                Endereço Salvo
+              </label>
+              <input 
+                disabled={!isEditing} 
+                value={formData.address || ''} 
+                onChange={e => handleChange('address', e.target.value)} 
+                placeholder="Rua, número, bairro" 
+                className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div 
+        className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isEditing 
+            ? 'grid-rows-[1fr] opacity-100 translate-y-0 mt-6 pt-5 border-t border-white/6' 
+            : 'grid-rows-[0fr] opacity-0 -translate-y-1.5 mt-0 pt-0 border-t border-transparent pointer-events-none'
+        }`}
+      >
+        <div className="overflow-hidden flex justify-end">
+          <button 
+            onClick={handleSubmit}
+            tabIndex={isEditing ? 0 : -1}
+            className="w-full sm:w-auto px-6 py-2.5 bg-[#9C2A32] hover:bg-[#88242B] text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-all duration-200 ease-out cursor-pointer active:scale-[0.985]"
+          >
+            Confirmar Alterações
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function ProfilePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -22,11 +141,13 @@ export function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function loadData() {
       if (user?.uid) {
         try {
           const userDocSnap = await getDoc(doc(db, "users", user.uid));
-          if (userDocSnap.exists()) {
+          if (isMounted && userDocSnap.exists()) {
             setUserData(prev => ({ ...prev, ...userDocSnap.data() }));
           }
 
@@ -36,38 +157,63 @@ export function ProfilePage() {
             limit(3)
           );
           const orderSnap = await getDocs(qOrders);
-          setOrders(orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          if (isMounted) {
+            setOrders(orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          }
 
           const cartDocRef = doc(db, "carrinhos", user.uid);
           const cartSnap = await getDoc(cartDocRef);
           
-          if (cartSnap.exists()) {
-            const cartData = cartSnap.data();
-            const items = cartData.items || (cartData.title ? [cartData] : []);
-            setCartItems(items.slice(0, 3));
-          } else {
-            setCartItems([]);
+          if (isMounted) {
+            if (cartSnap.exists()) {
+              const cartData = cartSnap.data();
+              const items = cartData.items || (cartData.title ? [cartData] : []);
+              setCartItems(items.slice(0, 3));
+            } else {
+              setCartItems([]);
+            }
           }
 
         } catch (error) {
-          console.error("Erro ao carregar dados:", error);
+          if (isMounted) {
+            console.error("Erro ao carregar dados:", error);
+          }
         } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
+      } else {
+        if (isMounted) {
           setLoading(false);
         }
       }
     }
+
     loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user?.uid]);
 
-  const handleSave = async () => {
+  const handleSave = async (updatedData) => {
     try {
-      await updateDoc(doc(db, "users", user.uid), userData);
+      await updateDoc(doc(db, "users", user.uid), updatedData);
+      setUserData(updatedData);
       setIsEditing(false);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+    }
   };
 
   const handleLogout = async () => {
-    try { await logout(); navigate('/login'); } catch (e) { console.error(e); }
+    try { 
+      await logout(); 
+      navigate('/login'); 
+    } catch (e) { 
+      console.error(e); 
+    }
   };
 
   if (loading) {
@@ -99,41 +245,11 @@ export function ProfilePage() {
         .stagger-2 { animation-delay: 60ms; }
         .stagger-3 { animation-delay: 120ms; }
 
-        .edit-action-expand {
-          display: grid;
-          grid-template-rows: 0fr;
-          opacity: 0;
-          margin-top: 0;
-          padding-top: 0;
-          border-top-color: transparent;
-          transition: 
-            grid-template-rows 280ms cubic-bezier(0.16, 1, 0.3, 1),
-            opacity 220ms ease-out,
-            margin-top 280ms cubic-bezier(0.16, 1, 0.3, 1),
-            padding-top 280ms cubic-bezier(0.16, 1, 0.3, 1),
-            border-color 280ms cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .edit-action-expand.is-open {
-          grid-template-rows: 1fr;
-          opacity: 1;
-          margin-top: 1.5rem;
-          padding-top: 1.25rem;
-          border-top-color: rgba(255, 255, 255, 0.06);
-        }
-
-        .edit-action-content {
-          overflow: hidden;
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .animate-reveal {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
-          }
-          .edit-action-expand {
-            transition: none !important;
           }
         }
       `}</style>
@@ -192,100 +308,13 @@ export function ProfilePage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch animate-reveal stagger-2">
           
-          <section className={`lg:col-span-7 bg-[#131316] border rounded-2xl p-6 sm:p-7 backdrop-blur-md flex flex-col justify-between h-full transition-all duration-300 ease-out ${
-            isEditing ? 'border-amber-500/30 bg-[#151519]' : 'border-white/8'
-          }`}>
-            <div>
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/6">
-                <div className="flex items-center gap-2.5">
-                  <div className={`p-1.5 rounded-lg transition-colors duration-200 ${isEditing ? 'bg-amber-500/10 text-amber-400' : 'bg-[#9C2A32]/10 text-[#9C2A32]'}`}>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                  </div>
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-300">
-                    Informações Pessoais
-                  </h2>
-                </div>
-                
-                <span className={`text-[11px] text-amber-400/90 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 transition-all duration-200 ease-out ${
-                  isEditing ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-1 scale-95 pointer-events-none'
-                }`}>
-                  Modo de Edição
-                </span>
-              </div>
+          <UserProfileForm 
+            userData={userData} 
+            isEditing={isEditing} 
+            onSave={handleSave} 
+          />
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
-                      Nome Completo
-                    </label>
-                    <input 
-                      disabled={!isEditing} 
-                      value={userData.name} 
-                      onChange={e => setUserData({...userData, name: e.target.value})} 
-                      placeholder="Seu nome" 
-                      className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
-                      E-mail
-                    </label>
-                    <input 
-                      disabled={!isEditing} 
-                      value={userData.email} 
-                      onChange={e => setUserData({...userData, email: e.target.value})} 
-                      placeholder="seu@email.com" 
-                      className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
-                      Telefone
-                    </label>
-                    <input 
-                      disabled={!isEditing} 
-                      value={userData.phone || ''} 
-                      onChange={e => setUserData({...userData, phone: e.target.value})} 
-                      placeholder="(00) 00000-0000" 
-                      className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
-                      Endereço Salvo
-                    </label>
-                    <input 
-                      disabled={!isEditing} 
-                      value={userData.address || ''} 
-                      onChange={e => setUserData({...userData, address: e.target.value})} 
-                      placeholder="Rua, número, bairro" 
-                      className="w-full bg-[#0B0B0D] border border-white/8 focus:border-amber-500/40 focus:bg-[#0E0E11] text-white text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all duration-200 ease-out disabled:opacity-40 disabled:bg-[#08080A] disabled:border-transparent placeholder:text-neutral-600"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={`border-t edit-action-expand ${isEditing ? 'is-open' : ''}`}>
-              <div className="edit-action-content flex justify-end">
-                <button 
-                  onClick={handleSave}
-                  tabIndex={isEditing ? 0 : -1}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-[#9C2A32] hover:bg-[#88242B] text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-all duration-200 ease-out cursor-pointer active:scale-[0.985]"
-                >
-                  Confirmar Alterações
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="lg:col-span-5 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7 backdrop-blur-md flex flex-col justify-between h-full transition-colors duration-200">
+          <section className="lg:col-span-5 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7 flex flex-col justify-between h-full transition-colors duration-200">
             <div>
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/6">
                 <div className="flex items-center gap-2.5">
@@ -347,7 +376,7 @@ export function ProfilePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch animate-reveal stagger-3">
           
-          <section className="lg:col-span-7 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7 backdrop-blur-md flex flex-col justify-between h-full transition-colors duration-200">
+          <section className="lg:col-span-7 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7 flex flex-col justify-between h-full transition-colors duration-200">
             <div>
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/6">
                 <div className="flex items-center gap-2.5">
@@ -401,7 +430,7 @@ export function ProfilePage() {
             </div>
           </section>
 
-          <section className="lg:col-span-5 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7 backdrop-blur-md flex flex-col justify-between h-full transition-colors duration-200">
+          <section className="lg:col-span-5 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7 flex flex-col justify-between h-full transition-colors duration-200">
             <div>
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/6">
                 <div className="flex items-center gap-2.5">
