@@ -96,9 +96,9 @@ export function CartPage() {
   if (!user && !loading) {
     return (
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-12 text-white">
-        <div className="relative flex flex-col items-center justify-center p-10 sm:p-16 text-center rounded-[28px] bg-gradient-to-b from-[#161616]/90 to-[#101010]/90 backdrop-blur-2xl border border-white/[0.06] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] overflow-hidden">
-          <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[420px] h-[420px] rounded-full bg-[#B3282D]/10 blur-[100px]" />
-          <div className="relative w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-6">
+        <div className="relative flex flex-col items-center justify-center p-10 sm:p-16 text-center rounded-[28px] bg-linear-to-b from-[#161616]/90 to-[#101010]/90 backdrop-blur-2xl border border-white/6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] overflow-hidden">
+          <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-105 h-105 rounded-full bg-[#B3282D]/10 blur-[100px]" />
+          <div className="relative w-16 h-16 rounded-2xl bg-white/4 border border-white/8 flex items-center justify-center mb-6">
             <span className="text-3xl">🛒</span>
           </div>
           <p className="relative text-base sm:text-lg font-medium tracking-wide mb-8 text-neutral-300 max-w-sm">
@@ -151,15 +151,15 @@ export function CartPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 p-5 sm:p-8 rounded-[28px] bg-gradient-to-b from-[#171717]/90 to-[#111111]/90 backdrop-blur-2xl border border-white/[0.06] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 p-5 sm:p-8 rounded-[28px] bg-linear-to-b from-[#171717]/90 to-[#111111]/90 backdrop-blur-2xl border border-white/6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]">
         
-        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-4 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent]">
+        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-4 scrollbar-thin [scrollbar-color:rgba(255,255,255,0.15)_transparent]">
           <h2 className="text-[11px] font-bold tracking-[0.2em] text-neutral-500 uppercase">
             Produtos
           </h2>
           
           {cartItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-14 text-center rounded-2xl bg-white/[0.02] border border-dashed border-white/10 text-neutral-500 gap-3">
+            <div className="flex flex-col items-center justify-center p-14 text-center rounded-2xl bg-white/2 border border-dashed border-white/10 text-neutral-500 gap-3">
               <span className="text-4xl opacity-30">🛒</span>
               <p className="text-sm tracking-wide">O teu carrinho está vazio.</p>
               <Link 
@@ -172,11 +172,11 @@ export function CartPage() {
           ) : (
             cartItems.map((item, index) => (
               <div 
-                className="cart-fade-up group flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 pb-5 border-b border-white/[0.06] last:border-b-0 last:pb-0" 
+                className="cart-fade-up group flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 pb-5 border-b border-white/6 last:border-b-0 last:pb-0" 
                 style={{ animationDelay: `${Math.min(index, 6) * 40}ms` }}
                 key={`${item.productId}-${item.size}-${index}`}
               >
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-neutral-900 flex-shrink-0 border border-white/[0.06]">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-neutral-900 shrink-0 border border-white/6">
                   <img 
                     src={item.image} 
                     alt={item.title} 
@@ -204,20 +204,20 @@ export function CartPage() {
                   </button>
                 </div>
                 
-                <div className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.08] p-1.5 rounded-full self-start sm:self-center shrink-0">
+                <div className="flex items-center gap-3 bg-white/3 border border-white/8 p-1.5 rounded-full self-start sm:self-center shrink-0">
                   <button 
                     aria-label="Diminuir quantidade"
-                    className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-[#B3282D] active:scale-90 text-white flex items-center justify-center text-base font-bold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D]"
+                    className="w-8 h-8 rounded-full bg-white/6 hover:bg-[#B3282D] active:scale-90 text-white flex items-center justify-center text-base font-bold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D]"
                     onClick={() => updateQuantity(item.productId, item.size, item.quantity - 1)}
                   >
                     <span>−</span>
                   </button>
-                  <span className="text-xs font-semibold tracking-wider min-w-[32px] text-center text-white tabular-nums">
+                  <span className="text-xs font-semibold tracking-wider min-w-8 text-center text-white tabular-nums">
                     {item.quantity}
                   </span>
                   <button 
                     aria-label="Aumentar quantidade"
-                    className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-[#B3282D] active:scale-90 text-white flex items-center justify-center text-base font-bold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D]"
+                    className="w-8 h-8 rounded-full bg-white/6 hover:bg-[#B3282D] active:scale-90 text-white flex items-center justify-center text-base font-bold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D]"
                     onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
                   >
                     <span>+</span>
@@ -228,7 +228,7 @@ export function CartPage() {
           )}
         </div>
 
-        <div className="lg:col-span-5 xl:col-span-4 flex flex-col lg:sticky lg:top-8 h-fit lg:border-l lg:border-white/[0.06] lg:pl-8">
+        <div className="lg:col-span-5 xl:col-span-4 flex flex-col lg:sticky lg:top-8 h-fit lg:border-l lg:border-white/6 lg:pl-8">
           <h2 className="text-[11px] font-bold tracking-[0.2em] text-neutral-500 uppercase mb-5">
             Resumo do Pedido
           </h2>
@@ -255,7 +255,7 @@ export function CartPage() {
           </div>
           
           {cartItems.length > 0 && (
-            <div className="mb-6 pt-5 border-t border-white/[0.06]">
+            <div className="mb-6 pt-5 border-t border-white/6">
               <ShippingCalculator 
                 cartItems={cartItems}
                 selectedShipping={shipping}
@@ -264,8 +264,8 @@ export function CartPage() {
             </div>
           )}
           
-          <div className="border border-white/[0.08] rounded-2xl overflow-hidden bg-white/[0.02] mb-6">
-            <div className="bg-white/[0.04] py-2.5 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-center border-b border-white/[0.06] text-neutral-500">
+          <div className="border border-white/8 rounded-2xl overflow-hidden bg-white/2 mb-6">
+            <div className="bg-white/4 py-2.5 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-center border-b border-white/6 text-neutral-500">
               Endereço de Entrega
             </div>
             <div className="p-4 text-xs sm:text-sm text-neutral-300 text-center leading-relaxed">
@@ -274,7 +274,7 @@ export function CartPage() {
           </div>
 
           <button 
-            className="w-full py-4 px-6 bg-[#B3282D] hover:bg-[#932025] disabled:bg-white/[0.04] disabled:text-neutral-600 disabled:cursor-not-allowed text-white text-sm font-bold tracking-[0.15em] uppercase rounded-full shadow-[0_10px_30px_-8px_rgba(179,40,45,0.55)] disabled:shadow-none transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#171717]"
+            className="w-full py-4 px-6 bg-[#B3282D] hover:bg-[#932025] disabled:bg-white/4 disabled:text-neutral-600 disabled:cursor-not-allowed text-white text-sm font-bold tracking-[0.15em] uppercase rounded-full shadow-[0_10px_30px_-8px_rgba(179,40,45,0.55)] disabled:shadow-none transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#171717]"
             disabled={cartItems.length === 0}
           >
             Finalizar Compra
