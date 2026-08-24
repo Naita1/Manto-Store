@@ -9,14 +9,12 @@ import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { ShippingCalculator } from '../../components/ShippingCalculator';
 
-import './Product.css';
-
 const FALLBACK_IMAGE = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
 
 const ACCORDIONS_DATA = [
-  { id: 1, title: "DESCRIÇÃO", contentKey: "description", fallback: "Nenhuma descrição informada para este produto." },
+  { id: 1, title: "DESCRIÇÃO DETALHADA", contentKey: "description", fallback: "Nenhuma descrição informada para este produto." },
   { id: 2, title: "TABELA DE MEDIDAS", content: "P: 50x70cm | M: 52x72cm | G: 54x74cm | GG: 56x76cm" },
-  { id: 3, title: "AVALIAÇÕES", content: "Nenhuma avaliação no momento." },
+  { id: 3, title: "AVALIAÇÕES DE CLIENTES", content: "Nenhuma avaliação no momento." },
   { id: 4, title: "DÚVIDAS SOBRE O PRODUTO", content: "Para personalizar, clique no botão 'PERSONALIZE DE GRAÇA'." }
 ];
 
@@ -33,6 +31,7 @@ export function ProductPage() {
   const [produtosRecomendados, setProdutosRecomendados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imagemPrincipal, setImagemPrincipal] = useState('');
+  const [imgChanging, setImgChanging] = useState(false);
   
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState('');
   const [querPersonalizar, setQuerPersonalizar] = useState(false);
@@ -40,9 +39,11 @@ export function ProductPage() {
   const [numeroPersonalizado, setNumeroPersonalizado] = useState('');
   
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxVisible, setLightboxVisible] = useState(false);
   const [accordionsAbertos, setAccordionsAbertos] = useState([]);
   
   const carouselRef = useRef(null);
+  const zoomImgRef = useRef(null);
 
   const listaImagens = produto?.image?.length > 0 ? produto.image : [FALLBACK_IMAGE];
   const tamanhosDisponiveis = produto?.sizes || [];
@@ -51,6 +52,15 @@ export function ProductPage() {
   const filtroTimeAtivo = location.state?.filtroTimeAtivo; 
   const categoriaInfo = produto?.category || produto?.categoria;
   const timeInfo = produto?.team || produto?.time;
+
+  const handleSelectImage = useCallback((img) => {
+    if (img === imagemPrincipal) return;
+    setImgChanging(true);
+    setTimeout(() => {
+      setImagemPrincipal(img);
+      setImgChanging(false);
+    }, 150);
+  }, [imagemPrincipal]);
 
   const handleAddToCart = useCallback(async (redirect = false) => {
     if (!user) {
@@ -128,22 +138,30 @@ export function ProductPage() {
     );
   }, []);
 
-  const openLightbox = () => setIsLightboxOpen(true);
-  const closeLightbox = () => setIsLightboxOpen(false);
-
-  const handleZoomMove = (e) => {
-    if (window.innerWidth <= 768) return;
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    const img = e.currentTarget.querySelector('img');
-    if (img) img.style.transformOrigin = `${x}% ${y}%`;
+  const openLightbox = () => {
+    setIsLightboxOpen(true);
+    requestAnimationFrame(() => setLightboxVisible(true));
+  };
+  
+  const closeLightbox = () => {
+    setLightboxVisible(false);
+    setTimeout(() => setIsLightboxOpen(false), 200);
   };
 
-  const handleZoomLeave = (e) => {
-    const img = e.currentTarget.querySelector('img');
-    if (img) img.style.transformOrigin = 'center center';
-  };
+  const handleZoomMove = useCallback((e) => {
+    if (window.innerWidth <= 768 || !zoomImgRef.current) return;
+    const { offsetX, offsetY } = e.nativeEvent;
+    const { offsetWidth, offsetHeight } = e.currentTarget;
+    const x = (offsetX / offsetWidth) * 100;
+    const y = (offsetY / offsetHeight) * 100;
+    zoomImgRef.current.style.transformOrigin = `${x}% ${y}%`;
+  }, []);
+
+  const handleZoomLeave = useCallback(() => {
+    if (zoomImgRef.current) {
+      zoomImgRef.current.style.transformOrigin = 'center center';
+    }
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -165,9 +183,8 @@ export function ProductPage() {
         }
       } catch (error) {
         console.error("Erro ao buscar detalhes do produto:", error);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     const buscarProdutosRelacionados = async () => {
@@ -201,241 +218,402 @@ export function ProductPage() {
 
   if (!produto) {
     return (
-      <div className="product-page-container">
-        <div className="loading-msg">Produto não encontrado.</div>
+      <div className="min-h-screen w-full bg-[#0B0B0D] text-[#ECECEE] font-sans flex items-center justify-center p-4">
+        <div className="text-center p-12 bg-[#131316] border border-white/[0.08] rounded-2xl max-w-md w-full">
+          <p className="text-lg text-neutral-300 font-medium">Produto não encontrado.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="product-page-container">
-      
-      <nav className="breadcrumbs">
-        <span onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          PÁGINA INICIAL
-        </span>
-
-        {veioDeFiltro && categoriaInfo && (
-          <>
-            {" / "}
-            <span 
-              onClick={() => navigate('/', { state: { filtroPais: categoriaInfo, filtroTime: null } })} 
-              style={{ cursor: 'pointer' }}
-            >
-              {categoriaInfo.toUpperCase()}
-            </span>
-          </>
-        )}
-
-        {veioDeFiltro && filtroTimeAtivo && timeInfo && (
-          <>
-            {" / "}
-            <span 
-              onClick={() => navigate('/', { state: { filtroPais: categoriaInfo, filtroTime: timeInfo } })} 
-              style={{ cursor: 'pointer' }}
-            >
-              {timeInfo.toUpperCase()}
-            </span>
-          </>
-        )}
-
-        {" / "} <span className="current-product">{produto.title}</span>
-      </nav>
-
-      <section className="product-top-section">
+    <div className="min-h-screen w-full bg-[#0B0B0D] text-[#ECECEE] selection:bg-[#9C2A32] selection:text-white font-sans antialiased pb-20 transform-gpu">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         
-        <div className="product-gallery">
-          <div className="product-thumbnails">
-            {listaImagens.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt={`${produto.title} - Miniatura ${index + 1}`}
-                className={imagemPrincipal === img ? 'thumb-active' : ''}
-                onClick={() => setImagemPrincipal(img)}
-                onError={handleImageError}
-              />
-            ))}
-          </div>
-
-          <div
-            className="product-image-large"
-            onClick={openLightbox}
-            onMouseMove={handleZoomMove}
-            onMouseLeave={handleZoomLeave}
+        <nav className="text-[11px] font-medium tracking-wider text-neutral-400 uppercase flex flex-wrap gap-2 items-center mb-6 sm:mb-8">
+          <span 
+            onClick={() => navigate('/')} 
+            className="hover:text-white transition-colors duration-200 cursor-pointer"
           >
-            <img src={imagemPrincipal} alt={produto.title || "Produto"} onError={handleImageError} />
-          </div>
-        </div>
+            PÁGINA INICIAL
+          </span>
 
-        <div className="product-info-panel">
-          <div className="product-header">
-            <div className="product-stars">
-              ★★★★<span className="star-empty">★</span>
+          {veioDeFiltro && categoriaInfo && (
+            <>
+              <span className="text-neutral-600">/</span>
+              <span 
+                onClick={() => navigate('/', { state: { filtroPais: categoriaInfo, filtroTime: null } })} 
+                className="hover:text-white transition-colors duration-200 cursor-pointer"
+              >
+                {categoriaInfo.toUpperCase()}
+              </span>
+            </>
+          )}
+
+          {veioDeFiltro && filtroTimeAtivo && timeInfo && (
+            <>
+              <span className="text-neutral-600">/</span>
+              <span 
+                onClick={() => navigate('/', { state: { filtroPais: categoriaInfo, filtroTime: timeInfo } })} 
+                className="hover:text-white transition-colors duration-200 cursor-pointer"
+              >
+                {timeInfo.toUpperCase()}
+              </span>
+            </>
+          )}
+
+          <span className="text-neutral-600">/</span> 
+          <span className="text-neutral-200 font-semibold truncate max-w-50 sm:max-w-xs">{produto.title}</span>
+        </nav>
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-14 items-start">
+          <div className="lg:col-span-6 w-full flex flex-col-reverse sm:flex-row gap-4">
+            <div className="flex sm:flex-col gap-3 w-full sm:w-20 overflow-x-auto sm:overflow-visible py-1 sm:py-0 shrink-0 justify-start scrollbar-none">
+              {listaImagens.map((img, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleSelectImage(img)}
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border transition-all duration-300 ease-out cursor-pointer bg-neutral-900 active:scale-95 transform-gpu ${
+                    imagemPrincipal === img 
+                      ? 'border-[#9C2A32] ring-2 ring-[#9C2A32]/40 scale-[1.03]' 
+                      : 'border-white/8 opacity-60 hover:opacity-100 hover:border-white/[0.2] hover:scale-[1.02]'
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`${produto.title} - Miniatura ${index + 1}`}
+                    className="w-full h-full object-cover pointer-events-none transition-opacity duration-200"
+                    onError={handleImageError}
+                  />
+                </button>
+              ))}
             </div>
-            <h1 className="product-title-large">{produto.title}</h1>
+            <div
+              className="relative flex-1 bg-[#131316] border border-white/8 rounded-2xl overflow-hidden flex items-center justify-center aspect-square sm:aspect-4/5 w-full cursor-zoom-in group shadow-2xl transform-gpu"
+              onClick={openLightbox}
+              onMouseMove={handleZoomMove}
+              onMouseLeave={handleZoomLeave}
+            >
+              <img 
+                ref={zoomImgRef}
+                src={imagemPrincipal} 
+                alt={produto.title || "Produto"} 
+                onError={handleImageError}
+                className={`w-full h-full object-cover object-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform transform-gpu lg:group-hover:scale-[1.75] pointer-events-none ${
+                  imgChanging ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                }`} 
+              />
+              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md p-2.5 rounded-xl text-neutral-300 opacity-0 group-hover:opacity-100 transition-all duration-300 transform-gpu translate-y-2 group-hover:translate-y-0 pointer-events-none">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                </svg>
+              </div>
+            </div>
           </div>
+          <div className="lg:col-span-6 w-full flex flex-col space-y-4">
+           <div className="space-y-1.5">
+              <div className="flex items-center gap-1 text-amber-400 text-sm">
+                <span>★★★★</span><span className="text-neutral-600">★</span>
+                <span className="text-xs text-neutral-400 ml-1.5 font-medium">(4.8 / 5.0) • 128 avaliações</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold uppercase tracking-tight text-white leading-tight">
+                {produto.title}
+              </h1>
+            </div>
+            <div className="p-4 rounded-2xl bg-[#131316] border border-white/8 space-y-1 transition-all duration-300 hover:border-white/12">
+              {produto.hasDiscount && (
+                <p className="line-through text-neutral-400 text-xs sm:text-sm">{formatCurrency(produto.originalPrice)}</p>
+              )}
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                  {formatCurrency(produto.price)}
+                </span>
+                {produto.hasDiscount && (
+                  <span className="bg-[#9C2A32]/20 text-[#9C2A32] border border-[#9C2A32]/30 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider animate-pulse">
+                    -{produto.discount}% OFF
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] sm:text-xs text-neutral-400 font-mono tracking-wide pt-1">
+                EM ATÉ 12X DE <span className="text-neutral-200 font-semibold">{formatCurrency(produto.price / 12)}</span> SEM JUROS
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold tracking-wider text-neutral-300 uppercase">SELECIONE O TAMANHO</span>
+                {tamanhoSelecionado && (
+                  <span className="text-neutral-400 transition-opacity duration-200">
+                    Selecionado: <strong className="text-white">{tamanhoSelecionado}</strong>
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {tamanhosDisponiveis.length > 0 ? (
+                  tamanhosDisponiveis.map(size => (
+                    <button
+                      key={size}
+                      type="button"
+                      className={`py-2 px-3.5 min-w-[52px] rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 ease-out cursor-pointer active:scale-95 transform-gpu ${
+                        tamanhoSelecionado === size 
+                          ? 'bg-[#9C2A32] text-white shadow-lg shadow-[#9C2A32]/30 border border-[#9C2A32] scale-105' 
+                          : 'bg-[#131316] text-neutral-300 border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15] hover:text-white'
+                      }`}
+                      onClick={() => setTamanhoSelecionado(size)}
+                    >
+                      {size}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-xs text-neutral-400 py-1">Tamanho único ou indisponível</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <button 
+                type="button"
+                className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 ease-out flex items-center justify-center gap-2 cursor-pointer border active:scale-[0.98] transform-gpu ${
+                  querPersonalizar 
+                    ? 'bg-[#9C2A32]/15 border-[#9C2A32] text-[#9C2A32] shadow-md shadow-[#9C2A32]/10' 
+                    : 'border-white/[0.12] bg-[#131316] text-neutral-200 hover:bg-white/[0.05] hover:border-white/[0.2]'
+                }`}
+                onClick={() => setQuerPersonalizar(!querPersonalizar)}
+              >
+                <svg className={`w-4 h-4 transition-transform duration-300 ${querPersonalizar ? 'rotate-12 scale-110' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                PERSONALIZE DE GRAÇA
+              </button>
 
-          <div className="product-price-box">
-            {produto.hasDiscount && (
-              <p className="product-price-old">{formatCurrency(produto.originalPrice)}</p>
-            )}
-            <p className="product-price-large">
-              {formatCurrency(produto.price)}
-              {produto.hasDiscount && <span className="discount-tag">-{produto.discount}% OFF</span>}
-            </p>
-            <p className="product-price-installments">
-              EM ATÉ 12X DE {formatCurrency(produto.price / 12)} SEM JUROS
-            </p>
+              <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
+                querPersonalizar ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'
+              }`}>
+                <div className="overflow-hidden">
+                  <div className="p-3.5 rounded-xl bg-[#131316] border border-white/[0.08] space-y-2.5">
+                    <div className="flex flex-col sm:flex-row gap-2.5">
+                      <input
+                        type="text"
+                        placeholder="NOME (Ex: RONALDO)"
+                        value={nomePersonalizado}
+                        onChange={(e) => setNomePersonalizado(e.target.value.toUpperCase())}
+                        maxLength="15"
+                        className="flex-[2] py-2 px-3 rounded-lg border border-white/[0.1] bg-[#0B0B0D] text-white text-xs outline-none uppercase placeholder:text-neutral-500 focus:border-[#9C2A32] transition-colors duration-200"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nº"
+                        value={numeroPersonalizado}
+                        onChange={(e) => setNumeroPersonalizado(e.target.value.replace(/\D/g, ''))}
+                        maxLength="2"
+                        className="flex-1 py-2 px-3 rounded-lg border border-white/[0.1] bg-[#0B0B0D] text-white text-xs outline-none text-center placeholder:text-neutral-500 focus:border-[#9C2A32] transition-colors duration-200"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="pt-1">
+              <div className="flex items-center rounded-xl overflow-hidden border border-[#9C2A32] bg-[#9C2A32] shadow-lg shadow-[#9C2A32]/20 transform-gpu transition-all duration-200 active:scale-[0.98] hover:shadow-[#9C2A32]/40">
+                <button
+                  type="button"
+                  className="p-3.5 sm:p-4 bg-black/20 hover:bg-black/35 text-white transition-colors duration-200 cursor-pointer flex items-center justify-center border-r border-white/10 active:bg-black/45"
+                  onClick={() => handleAddToCart(false)}
+                  title="Adicionar ao Carrinho"
+                  aria-label="Adicionar ao carrinho"
+                >
+                  <svg className="w-5 h-5 transition-transform duration-200 hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+                  </svg>
+                </button>
+                <button 
+                  type="button"
+                  className="flex-1 py-3.5 sm:py-4 px-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-transparent hover:bg-[#88242B] transition-colors duration-200 cursor-pointer text-center" 
+                  onClick={() => handleAddToCart(true)}
+                >
+                  COMPRAR AGORA
+                </button>
+              </div>
+            </div>
+            <div className="pt-1">
+              <ShippingCalculator />
+            </div>
           </div>
+        </section>
+        <section className="w-full space-y-6 mb-16 border-t border-white/[0.06] pt-10">          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-[#131316] border border-white/[0.08] rounded-2xl">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+              <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h10M7 12h10M7 17h10" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[10px] text-neutral-400 uppercase font-medium">Tecido Premium</p>
+                <p className="text-xs text-neutral-200 font-semibold">Respirável / Dry-Fit</p>
+              </div>
+            </div>
 
-          <div className="product-sizes">
-            <p className="section-label">SELECIONE O TAMANHO</p>
-            <div className="size-buttons">
-              {tamanhosDisponiveis.length > 0 ? (
-                tamanhosDisponiveis.map(size => (
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+              <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[10px] text-neutral-400 uppercase font-medium">Acabamento</p>
+                <p className="text-xs text-neutral-200 font-semibold">Escudo Bordado</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+              <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[10px] text-neutral-400 uppercase font-medium">Modelagem</p>
+                <p className="text-xs text-neutral-200 font-semibold">Caimento Padrão</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0B0B0D]/60 border border-white/[0.04]">
+              <div className="p-2 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32] shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[10px] text-neutral-400 uppercase font-medium">Garantia</p>
+                <p className="text-xs text-neutral-200 font-semibold">7 Dias Contra Defeitos</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {ACCORDIONS_DATA.map((item, index) => {
+              const isOpen = accordionsAbertos.includes(index);
+              const content = item.contentKey === "description" ? (produto.description || item.fallback) : item.content;
+
+              return (
+                <div key={item.id} className="bg-[#131316] border border-white/[0.08] rounded-2xl overflow-hidden transform-gpu transition-colors duration-200 hover:border-white/[0.15]">
                   <button
-                    key={size}
-                    className={`size-btn ${tamanhoSelecionado === size ? 'active' : ''}`}
-                    onClick={() => setTamanhoSelecionado(size)}
+                    type="button"
+                    className={`w-full px-5 py-4 flex justify-between items-center font-semibold text-xs sm:text-sm tracking-wider uppercase text-neutral-200 text-left transition-colors duration-200 cursor-pointer hover:bg-white/[0.02] ${
+                      isOpen ? 'border-b border-white/[0.06]' : ''
+                    }`}
+                    onClick={() => toggleAccordion(index)}
+                    aria-expanded={isOpen}
                   >
-                    {size}
+                    <span>{item.title}</span>
+                    <span className={`p-1 rounded-md text-[#9C2A32] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${isOpen ? 'rotate-45' : ''}`}>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                      </svg>
+                    </span>
                   </button>
+                  <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
+                    isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                  }`}>
+                    <div className="overflow-hidden">
+                      <p className="p-5 text-neutral-400 text-xs sm:text-sm leading-relaxed whitespace-pre-line m-0">
+                        {content}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        <section className="space-y-5">
+          <h3 className="text-white text-base sm:text-lg tracking-wider uppercase font-bold">
+            VOCÊ TAMBÉM PODE GOSTAR
+          </h3>
+          <div className="relative flex items-center gap-3 w-full">
+            
+            {produtosRecomendados.length > 0 && (
+              <button 
+                type="button"
+                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/[0.1] rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
+                onClick={() => scrollCarousel(-300)} 
+                aria-label="Produtos anteriores"
+              >
+                ‹
+              </button>
+            )}
+
+            <div 
+              className="flex gap-4 sm:gap-5 overflow-x-auto scroll-smooth py-2 flex-1 scrollbar-none snap-x snap-mandatory transform-gpu" 
+              ref={carouselRef}
+            >
+              {produtosRecomendados.length > 0 ? (
+                produtosRecomendados.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className="bg-[#131316] border border-white/[0.08] rounded-2xl w-[190px] sm:w-[220px] shrink-0 flex flex-col cursor-pointer overflow-hidden transition-all duration-300 ease-out hover:border-white/[0.25] hover:-translate-y-1 hover:shadow-xl snap-start group transform-gpu" 
+                    onClick={() => navigate(`/produto/${item.id}`)}
+                  >
+                    <div className="bg-neutral-900 h-[190px] sm:h-[220px] w-full flex justify-center items-center overflow-hidden relative">
+                      <img
+                        src={item.image?.[0] || FALLBACK_IMAGE}
+                        alt={item.title || "Produto Recomendado"}
+                        onError={handleImageError}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 pointer-events-none transform-gpu"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5 p-4">
+                      <p className="text-xs text-neutral-300 uppercase font-medium leading-snug line-clamp-2 truncate group-hover:text-white transition-colors duration-200">
+                        {item.title}
+                      </p>
+                      <p className="text-sm sm:text-base text-white font-mono font-bold">
+                        {formatCurrency(item.price)}
+                      </p>
+                    </div>
+                  </div>
                 ))
               ) : (
-                <p className="no-sizes-msg">Tamanho único ou indisponível</p>
+                <p className="text-neutral-500 text-xs p-4">Buscando produtos...</p>
               )}
             </div>
-          </div>
 
-          <ShippingCalculator />
-
-          <div className="action-buttons">
-            <button className="btn-personalize" onClick={() => setQuerPersonalizar(!querPersonalizar)}>
-              PERSONALIZE DE GRAÇA
-            </button>
-
-            {querPersonalizar && (
-              <div className="personalize-inputs-container">
-                <input
-                  type="text"
-                  placeholder="NOME (Ex: RONALDO)"
-                  value={nomePersonalizado}
-                  onChange={(e) => setNomePersonalizado(e.target.value.toUpperCase())}
-                  maxLength="15"
-                  className="personalize-input input-nome"
-                />
-                <input
-                  type="text"
-                  placeholder="Nº"
-                  value={numeroPersonalizado}
-                  onChange={(e) => setNumeroPersonalizado(e.target.value.replace(/\D/g, ''))}
-                  maxLength="2"
-                  className="personalize-input input-numero"
-                />
-              </div>
+            {produtosRecomendados.length > 0 && (
+              <button 
+                type="button"
+                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/[0.1] rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
+                onClick={() => scrollCarousel(300)} 
+                aria-label="Próximos produtos"
+              >
+                ›
+              </button>
             )}
 
-            <div className="btn-buy-container">
-              <button
-                className="btn-add-cart"
-                onClick={() => handleAddToCart(false)}
-                title="Adicionar ao Carrinho"
-                aria-label="Adicionar ao carrinho"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="9" cy="21" r="1"></circle>
-                  <circle cx="20" cy="21" r="1"></circle>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
-              </button>
-              <button className="btn-buy-now" onClick={() => handleAddToCart(true)}>
-                COMPRAR AGORA
-              </button>
-            </div>
           </div>
-        </div>
-      </section>
-
-      <section className="product-bottom-section">
-        {ACCORDIONS_DATA.map((item, index) => {
-          const isOpen = accordionsAbertos.includes(index);
-          const content = item.contentKey === "description" ? (produto.description || item.fallback) : item.content;
-
-          return (
-            <div key={item.id} className="accordion-wrapper">
-              <button
-                className={`accordion-bar ${isOpen ? 'active' : ''}`}
-                onClick={() => toggleAccordion(index)}
-                aria-expanded={isOpen}
-              >
-                <span>{item.title}</span>
-                <span className={`accordion-icon ${isOpen ? 'open' : ''}`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </span>
-              </button>
-              <div className={`accordion-content ${isOpen ? 'show' : ''}`}>
-                <div className="accordion-inner">
-                  <p style={{ whiteSpace: 'pre-line' }}>{content}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </section>
-
-      <section className="related-products-section">
-        <h3 className="related-title">VOCÊ TAMBÉM PODE GOSTAR</h3>
-        <div className="carousel-wrapper">
-          
-          {produtosRecomendados.length > 0 && (
-            <button className="carousel-arrow" onClick={() => scrollCarousel(-300)} aria-label="Produtos anteriores">
-              &#10094;
+        </section>
+        {isLightboxOpen && (
+          <div 
+            className={`fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[1000] cursor-pointer p-4 transform-gpu transition-opacity duration-200 ${
+              lightboxVisible ? 'opacity-100' : 'opacity-0'
+            }`} z-1000
+            onClick={closeLightbox}
+          >
+            <button 
+              type="button"
+              className="absolute top-4 right-6 text-3xl text-neutral-400 hover:text-white transition-colors duration-200 font-light z-[1001]"
+              onClick={closeLightbox}
+            >
+              &times;
             </button>
-          )}
-
-          <div className="related-carousel" ref={carouselRef}>
-            {produtosRecomendados.length > 0 ? (
-              produtosRecomendados.map((item) => (
-                <div key={item.id} className="related-card" onClick={() => navigate(`/produto/${item.id}`)}>
-                  <div className="related-card-img">
-                    <img
-                      src={item.image?.[0] || FALLBACK_IMAGE}
-                      alt={item.title || "Produto Recommended"}
-                      onError={handleImageError}
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="related-card-info">
-                    <p className="related-card-name">{item.title}</p>
-                    <p className="related-card-price">{formatCurrency(item.price)}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: '#A0A0A0', fontSize: '0.9rem', padding: '1rem' }}>Buscando produtos...</p>
-            )}
+            <img 
+              src={imagemPrincipal} 
+              alt={produto.title} 
+              className={`max-w-[90vw] max-h-[90vh] object-contain cursor-zoom-in rounded-lg shadow-2xl transform-gpu transition-transform duration-300 ease-out ${
+                lightboxVisible ? 'scale-100' : 'scale-95'
+              }`} 
+              onClick={(e) => e.stopPropagation()} 
+            />
           </div>
-
-          {produtosRecomendados.length > 0 && (
-            <button className="carousel-arrow" onClick={() => scrollCarousel(300)} aria-label="Próximos produtos">
-              &#10095;
-            </button>
-          )}
-
-        </div>
-      </section>
-
-      {isLightboxOpen && (
-        <div className="lightbox" onClick={closeLightbox}>
-          <span className="lightbox-close">&times;</span>
-          <img src={imagemPrincipal} alt={produto.title} className="lightbox-image" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
-      
+        )}
+      </div>
     </div>
   );
 }
