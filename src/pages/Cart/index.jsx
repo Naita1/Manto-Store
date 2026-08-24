@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../services/firebase'; 
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
@@ -13,6 +13,9 @@ export function CartPage() {
   const { user } = useAuth(); 
   const navigate = useNavigate();
 
+  const pendingTimeoutRef = useRef(null);
+  const isPendingSyncRef = useRef(false);
+
   useEffect(() => {
     if (!user) {
       setLoading(false);
@@ -24,16 +27,25 @@ export function CartPage() {
     const unsubscribe = onSnapshot(cartRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setCartItems(data.items || []);
+        if (!isPendingSyncRef.current) {
+          setCartItems(data.items || []);
+        }
         setShipping(data.shipping || null);
       } else {
-        setCartItems([]);
+        if (!isPendingSyncRef.current) {
+          setCartItems([]);
+        }
         setShipping(null);
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (pendingTimeoutRef.current) {
+        clearTimeout(pendingTimeoutRef.current);
+      }
+    };
   }, [user]);
 
   const handleShippingSelected = useCallback(async (shippingData) => {
@@ -46,30 +58,61 @@ export function CartPage() {
     }
   }, [user]);
 
-  const updateQuantity = async (productId, size, newQuantity) => {
+  const debouncedSyncCart = useCallback((updatedItems) => {
+    isPendingSyncRef.current = true;
+
+    if (pendingTimeoutRef.current) {
+      clearTimeout(pendingTimeoutRef.current);
+    }
+
+    pendingTimeoutRef.current = setTimeout(async () => {
+      if (!user) {
+        isPendingSyncRef.current = false;
+        return;
+      }
+      const cartRef = doc(db, "carrinhos", user.uid);
+      try {
+        await updateDoc(cartRef, { items: updatedItems });
+      } catch (error) {
+        console.error("Erro ao atualizar a quantidade:", error);
+      } finally {
+        isPendingSyncRef.current = false;
+      }
+    }, 300);
+  }, [user]);
+
+  const updateQuantity = (productId, size, newQuantity) => {
     if (newQuantity < 1) return;
 
-    const cartRef = doc(db, "carrinhos", user.uid);
-    const updatedItems = cartItems.map(item => 
-      (item.productId === productId && item.size === size) 
-        ? { ...item, quantity: newQuantity } 
-        : item
-    );
-
-    try {
-      await updateDoc(cartRef, { items: updatedItems });
-    } catch (error) {
-      console.error("Erro ao atualizar a quantidade:", error);
-    }
+    setCartItems((prevItems) => {
+      const updatedItems = prevItems.map((item) =>
+        (item.productId === productId && item.size === size)
+          ? { ...item, quantity: newQuantity }
+          : item
+      );
+      debouncedSyncCart(updatedItems);
+      return updatedItems;
+    });
   };
 
   const removeItem = async (productId, size) => {
-    const cartRef = doc(db, "carrinhos", user.uid);
-    const updatedItems = cartItems.filter(item => 
-      !(item.productId === productId && item.size === size)
-    );
+    if (pendingTimeoutRef.current) {
+      clearTimeout(pendingTimeoutRef.current);
+    }
 
+    let updatedItems = [];
+    setCartItems((prevItems) => {
+      updatedItems = prevItems.filter((item) => 
+        !(item.productId === productId && item.size === size)
+      );
+      return updatedItems;
+    });
+
+    if (!user) return;
+
+    const cartRef = doc(db, "carrinhos", user.uid);
     try {
+      isPendingSyncRef.current = true;
       const novoFrete = updatedItems.length === 0 ? null : shipping;
       await updateDoc(cartRef, { 
         items: updatedItems,
@@ -77,6 +120,8 @@ export function CartPage() {
       });
     } catch (error) {
       console.error("Erro ao remover item:", error);
+    } finally {
+      isPendingSyncRef.current = false;
     }
   };
 
@@ -92,20 +137,19 @@ export function CartPage() {
     ? `${shipping.cidade} - CEP: ${shipping.cep}`
     : 'Nenhum CEP calculado';
 
-
   if (!user && !loading) {
     return (
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-12 text-white">
-        <div className="relative flex flex-col items-center justify-center p-10 sm:p-16 text-center rounded-[28px] bg-linear-to-b from-[#161616]/90 to-[#101010]/90 backdrop-blur-2xl border border-white/6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] overflow-hidden">
-          <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-105 h-105 rounded-full bg-[#B3282D]/10 blur-[100px]" />
-          <div className="relative w-16 h-16 rounded-2xl bg-white/4 border border-white/8 flex items-center justify-center mb-6">
-            <span className="text-3xl">🛒</span>
+      <div className="min-h-screen w-full bg-[#0B0B0D] text-[#ECECEE] selection:bg-[#9C2A32] selection:text-white flex items-center justify-center px-4 py-12 font-sans antialiased">
+        <div className="w-full max-w-md bg-[#131316] border border-white/8 rounded-2xl p-8 text-center">
+          <div className="w-12 h-12 rounded-xl bg-[#9C2A32]/10 text-[#9C2A32] border border-[#9C2A32]/20 flex items-center justify-center mx-auto mb-5">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 11h14l1 12H4L5 11z" /></svg>
           </div>
-          <p className="relative text-base sm:text-lg font-medium tracking-wide mb-8 text-neutral-300 max-w-sm">
-            Precisas de fazer login para ver o teu carrinho.
+          <h2 className="text-lg font-semibold text-white tracking-tight mb-2">Acesso Necessário</h2>
+          <p className="text-xs text-neutral-400 font-normal leading-relaxed mb-6">
+            Você precisa estar conectado em uma conta para visualizar seu carrinho.
           </p>
           <button 
-            className="relative w-full max-w-xs py-4 px-6 bg-[#B3282D] hover:bg-[#932025] text-white text-sm font-bold tracking-[0.15em] uppercase rounded-full transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.97] active:translate-y-0 cursor-pointer shadow-[0_10px_30px_-8px_rgba(179,40,45,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#161616]"
+            className="w-full py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-[background-color,transform] duration-200 ease-out cursor-pointer active:scale-[0.985]"
             onClick={() => navigate('/login')}
           >
             Ir para Login
@@ -120,167 +164,212 @@ export function CartPage() {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 text-white">
+    <div className="min-h-screen w-full bg-[#0B0B0D] text-[#ECECEE] selection:bg-[#9C2A32] selection:text-white pb-20 font-sans antialiased">
       <style>{`
-        @keyframes cart-fade-up {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes pageReveal {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        .cart-fade-up {
-          animation: cart-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+        .animate-reveal {
+          opacity: 0;
+          animation: pageReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        .stagger-1 { animation-delay: 0ms; }
+        .stagger-2 { animation-delay: 60ms; }
+
         @media (prefers-reduced-motion: reduce) {
-          .cart-fade-up { animation: none; }
+          .animate-reveal {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
         }
       `}</style>
 
-      <div className="text-[11px] sm:text-xs tracking-[0.2em] mb-5 text-neutral-500 font-medium uppercase">
-        <Link to="/" className="hover:text-neutral-200 transition-colors duration-200">← Página inicial</Link>
-        <span className="mx-2 text-neutral-700">/</span>
-        <span className="text-neutral-300">Carrinho de compras</span>
-      </div>
+      <div className="relative border-b border-white/8 bg-linear-to-b from-white/2 to-transparent">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 animate-reveal stagger-1">
+          <div className="text-[11px] font-medium tracking-wider mb-3 text-neutral-400 uppercase flex items-center gap-2">
+            <Link to="/" className="hover:text-white transition-colors duration-200">← Página inicial</Link>
+            <span className="text-neutral-600">/</span>
+            <span className="text-neutral-300">Carrinho</span>
+          </div>
 
-      <div className="flex items-baseline justify-between mb-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-[0.08em] text-white">
-          Carrinho
-        </h1>
-        {cartItems.length > 0 && (
-          <span className="text-xs tracking-widest text-neutral-500 uppercase font-medium">
-            {cartItems.length} {cartItems.length === 1 ? 'item' : 'itens'}
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 p-5 sm:p-8 rounded-[28px] bg-linear-to-b from-[#171717]/90 to-[#111111]/90 backdrop-blur-2xl border border-white/6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]">
-        
-        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-4 scrollbar-thin [scrollbar-color:rgba(255,255,255,0.15)_transparent]">
-          <h2 className="text-[11px] font-bold tracking-[0.2em] text-neutral-500 uppercase">
-            Produtos
-          </h2>
-          
-          {cartItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-14 text-center rounded-2xl bg-white/2 border border-dashed border-white/10 text-neutral-500 gap-3">
-              <span className="text-4xl opacity-30">🛒</span>
-              <p className="text-sm tracking-wide">O teu carrinho está vazio.</p>
-              <Link 
-                to="/" 
-                className="mt-2 text-xs font-semibold tracking-widest uppercase text-[#d3585d] hover:text-[#e37d81] transition-colors duration-200"
-              >
-                Continuar a comprar →
-              </Link>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
+                Carrinho de Compras
+              </h1>
             </div>
-          ) : (
-            cartItems.map((item, index) => (
-              <div 
-                className="cart-fade-up group flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 pb-5 border-b border-white/6 last:border-b-0 last:pb-0" 
-                style={{ animationDelay: `${Math.min(index, 6) * 40}ms` }}
-                key={`${item.productId}-${item.size}-${index}`}
-              >
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-neutral-900 shrink-0 border border-white/6">
-                  <img 
-                    src={item.image} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
-                  />
-                </div>
-                
-                <div className="flex-1 flex flex-col gap-1.5 w-full min-w-0">
-                  <Link to={`/produto/${item.productId}`} className="no-underline w-fit">
-                    <h3 className="text-sm sm:text-base font-semibold text-neutral-200 hover:text-white transition-colors duration-200 line-clamp-2">
-                      {item.title}
-                    </h3>
-                  </Link>
-                  <p className="text-[11px] text-neutral-500 uppercase tracking-widest">
-                    Tamanho <span className="text-neutral-300 font-medium">{item.size}</span>
-                  </p>
-                  <strong className="text-base sm:text-lg font-bold text-white mt-1 tabular-nums">
-                    {formatCurrency(item.price)}
-                  </strong>
-                  <button 
-                    className="text-[11px] text-neutral-500 hover:text-[#d3585d] uppercase tracking-widest mt-1.5 cursor-pointer transition-colors duration-200 w-fit inline-flex items-center gap-1"
-                    onClick={() => removeItem(item.productId, item.size)}
-                  >
-                    Remover
-                  </button>
-                </div>
-                
-                <div className="flex items-center gap-3 bg-white/3 border border-white/8 p-1.5 rounded-full self-start sm:self-center shrink-0">
-                  <button 
-                    aria-label="Diminuir quantidade"
-                    className="w-8 h-8 rounded-full bg-white/6 hover:bg-[#B3282D] active:scale-90 text-white flex items-center justify-center text-base font-bold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D]"
-                    onClick={() => updateQuantity(item.productId, item.size, item.quantity - 1)}
-                  >
-                    <span>−</span>
-                  </button>
-                  <span className="text-xs font-semibold tracking-wider min-w-8 text-center text-white tabular-nums">
-                    {item.quantity}
-                  </span>
-                  <button 
-                    aria-label="Aumentar quantidade"
-                    className="w-8 h-8 rounded-full bg-white/6 hover:bg-[#B3282D] active:scale-90 text-white flex items-center justify-center text-base font-bold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D]"
-                    onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
-                  >
-                    <span>+</span>
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="lg:col-span-5 xl:col-span-4 flex flex-col lg:sticky lg:top-8 h-fit lg:border-l lg:border-white/6 lg:pl-8">
-          <h2 className="text-[11px] font-bold tracking-[0.2em] text-neutral-500 uppercase mb-5">
-            Resumo do Pedido
-          </h2>
-          
-          <div className="flex flex-col gap-3 mb-4">
-            <div className="flex justify-between items-center text-sm text-neutral-400 tracking-wide">
-              <span>Subtotal</span>
-              <span className="text-neutral-200 tabular-nums">{formatCurrency(subtotal)}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm text-neutral-400 tracking-wide">
-              <span>Frete {shipping?.tipo && <span className="text-neutral-600">({shipping.tipo})</span>}</span>
-              <span className={`tabular-nums ${totalFrete > 0 ? 'text-neutral-200' : 'text-neutral-500 italic'}`}>
-                {totalFrete > 0 ? formatCurrency(totalFrete) : 'A calcular'}
+            {cartItems.length > 0 && (
+              <span className="text-[11px] font-mono text-neutral-400 bg-white/4 px-2.5 py-1 rounded-md border border-white/8">
+                {cartItems.length} {cartItems.length === 1 ? 'item' : 'itens'}
               </span>
-            </div>
+            )}
           </div>
-
-          <div className="flex justify-between items-end pt-4 mb-6 border-t border-dashed border-white/15">
-            <span className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">Total</span>
-            <span className="text-xl sm:text-2xl font-extrabold tracking-wide text-white tabular-nums">
-              {formatCurrency(totalPedido)}
-            </span>
-          </div>
-          
-          {cartItems.length > 0 && (
-            <div className="mb-6 pt-5 border-t border-white/6">
-              <ShippingCalculator 
-                cartItems={cartItems}
-                selectedShipping={shipping}
-                onShippingSelected={handleShippingSelected}
-              />
-            </div>
-          )}
-          
-          <div className="border border-white/8 rounded-2xl overflow-hidden bg-white/2 mb-6">
-            <div className="bg-white/4 py-2.5 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-center border-b border-white/6 text-neutral-500">
-              Endereço de Entrega
-            </div>
-            <div className="p-4 text-xs sm:text-sm text-neutral-300 text-center leading-relaxed">
-              <p>{cartItems.length === 0 ? 'Endereço indisponível' : dadosEntrega}</p>
-            </div>
-          </div>
-
-          <button 
-            className="w-full py-4 px-6 bg-[#B3282D] hover:bg-[#932025] disabled:bg-white/4 disabled:text-neutral-600 disabled:cursor-not-allowed text-white text-sm font-bold tracking-[0.15em] uppercase rounded-full shadow-[0_10px_30px_-8px_rgba(179,40,45,0.55)] disabled:shadow-none transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3282D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#171717]"
-            disabled={cartItems.length === 0}
-          >
-            Finalizar Compra
-          </button>
         </div>
       </div>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 animate-reveal stagger-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <section className="lg:col-span-7 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/6">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32]">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 11h14l1 12H4L5 11z" /></svg>
+                </div>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-300">
+                  Produtos Selecionados
+                </h2>
+              </div>
+            </div>
+
+            {cartItems.length === 0 ? (
+              <div className="py-12 text-center rounded-xl border border-dashed border-white/8 bg-[#0B0B0D]/40 flex flex-col items-center justify-center gap-3 min-h-50">
+                <p className="text-xs text-neutral-400">Seu carrinho está atualmente vazio.</p>
+                <Link 
+                  to="/" 
+                  className="text-xs font-medium uppercase tracking-wider text-[#9C2A32] hover:text-[#88242B] transition-colors duration-200"
+                >
+                  Explorar Produtos →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {cartItems.map((item, index) => (
+                  <div 
+                    key={`${item.productId}-${item.size}-${index}`}
+                    className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl bg-[#0B0B0D] border border-white/6 hover:border-white/12 hover:bg-white/2 transition-[border-color,background-color] duration-200 ease-out gap-4"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0 w-full sm:w-auto">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-neutral-900 overflow-hidden shrink-0 border border-white/8">
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      <div className="flex flex-col gap-1 min-w-0 flex-1">
+                        <Link to={`/produto/${item.productId}`} className="no-underline">
+                          <h3 className="text-xs sm:text-sm font-medium text-neutral-200 group-hover:text-white transition-colors duration-200 truncate">
+                            {item.title}
+                          </h3>
+                        </Link>
+                        <div className="flex items-center gap-2 text-[11px] text-neutral-400">
+                          <span>Tamanho: <strong className="text-white font-medium">{item.size}</strong></span>
+                        </div>
+                        <span className="font-mono text-xs sm:text-sm font-semibold text-white tabular-nums mt-0.5">
+                          {formatCurrency(item.price)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-white/4">
+                      <div className="flex items-center gap-2 bg-white/3 border border-white/8 p-1 rounded-xl">
+                        <button 
+                          aria-label="Diminuir quantidade"
+                          className="w-7 h-7 rounded-lg bg-white/4 hover:bg-white/10 active:scale-95 text-white flex items-center justify-center text-xs font-bold transition-[background-color,transform] duration-150 cursor-pointer"
+                          onClick={() => updateQuantity(item.productId, item.size, item.quantity - 1)}
+                        >
+                          −
+                        </button>
+                        <span className="font-mono text-xs font-medium min-w-6 text-center text-white tabular-nums">
+                          {item.quantity}
+                        </span>
+                        <button 
+                          aria-label="Aumentar quantidade"
+                          className="w-7 h-7 rounded-lg bg-white/4 hover:bg-white/10 active:scale-95 text-white flex items-center justify-center text-xs font-bold transition-[background-color,transform] duration-150 cursor-pointer"
+                          onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <button 
+                        className="p-2 text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors duration-200 cursor-pointer"
+                        title="Remover item"
+                        onClick={() => removeItem(item.productId, item.size)}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="lg:col-span-5 bg-[#131316] border border-white/8 rounded-2xl p-6 sm:p-7 lg:sticky lg:top-8">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/6">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-[#9C2A32]/10 text-[#9C2A32]">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                </div>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-300">
+                  Resumo do Pedido
+                </h2>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-5">
+              <div className="flex justify-between items-center text-xs text-neutral-400">
+                <span>Subtotal</span>
+                <span className="font-mono font-medium text-neutral-200 tabular-nums">{formatCurrency(subtotal)}</span>
+              </div>
+
+              <div className="flex justify-between items-center text-xs text-neutral-400">
+                <span>Frete {shipping?.tipo && <span className="text-neutral-500">({shipping.tipo})</span>}</span>
+                <span className={`font-mono text-xs ${totalFrete > 0 ? 'font-medium text-neutral-200' : 'text-neutral-500'}`}>
+                  {totalFrete > 0 ? formatCurrency(totalFrete) : 'A calcular'}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center pt-3 border-t border-dashed border-white/12">
+                <span className="text-xs font-semibold uppercase tracking-wider text-neutral-300">Total</span>
+                <span className="font-mono text-lg font-bold text-white tabular-nums">
+                  {formatCurrency(totalPedido)}
+                </span>
+              </div>
+            </div>
+
+            {cartItems.length > 0 && (
+              <div className="mb-5 pt-4 border-t border-white/6">
+                <ShippingCalculator 
+                  cartItems={cartItems}
+                  selectedShipping={shipping}
+                  onShippingSelected={handleShippingSelected}
+                />
+              </div>
+            )}
+
+            <div className="p-3.5 rounded-xl bg-[#0B0B0D] border border-white/6 mb-6">
+              <span className="block text-[10px] font-medium uppercase tracking-wider text-neutral-500 mb-1">
+                Endereço de Entrega
+              </span>
+              <p className="text-xs text-neutral-300 leading-relaxed">
+                {cartItems.length === 0 ? 'Endereço indisponível' : dadosEntrega}
+              </p>
+            </div>
+
+            <button 
+              className="w-full py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] disabled:bg-white/4 disabled:text-neutral-600 disabled:border disabled:border-white/4 disabled:cursor-not-allowed text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-[background-color,border-color,color,transform] duration-200 ease-out cursor-pointer active:scale-[0.985]"
+              disabled={cartItems.length === 0}
+            >
+              Finalizar Compra
+            </button>
+          </section>
+
+        </div>
+      </main>
     </div>
   );
 }
