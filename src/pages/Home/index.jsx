@@ -52,24 +52,26 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
           </h2>
         </div>
         {!isGrid && produtos.length > 0 && (
-          <button 
+          <Button 
+            type="button"
             onClick={handleViewAll}
-            className="text-xs sm:text-sm font-extrabold tracking-wider text-red-500 hover:text-red-400 transition-colors uppercase cursor-pointer flex items-center gap-1 group"
+            className="w-auto p-0 bg-transparent hover:bg-transparent text-xs sm:text-sm font-extrabold tracking-wider text-red-500 hover:text-red-400 uppercase gap-1 group rounded-none active:scale-100 transition-colors duration-200"
           >
             VER TUDO
-            <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
-          </button>
+            <span className="inline-block transition-transform duration-200 group-hover:translate-x-1 transform-gpu">→</span>
+          </Button>
         )}
       </div>
       <div className="relative group/carousel">
         {!isGrid && (
-          <button 
-            className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 items-center justify-center rounded-full bg-neutral-900/90 text-white border border-neutral-700/60 backdrop-blur-md shadow-xl hover:bg-red-600 hover:border-red-600 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer" 
+          <Button 
+            type="button"
             onClick={() => scroll(-400)}
             aria-label="Anterior"
+            className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 z-20 p-0 w-11 h-11 rounded-full bg-neutral-900/90 text-white border border-neutral-700/60 backdrop-blur-md hover:bg-red-600 hover:border-red-600 hover:scale-110 active:scale-95 transition-all duration-200 transform-gpu" 
           >
             &#10094;
-          </button>
+          </Button>
         )}
         
         <div 
@@ -101,13 +103,14 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
         </div>
 
         {!isGrid && (
-          <button 
-            className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 items-center justify-center rounded-full bg-neutral-900/90 text-white border border-neutral-700/60 backdrop-blur-md shadow-xl hover:bg-red-600 hover:border-red-600 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer" 
+          <Button 
+            type="button"
             onClick={() => scroll(400)}
             aria-label="Próximo"
+            className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-20 p-0 w-11 h-11 rounded-full bg-neutral-900/90 text-white border border-neutral-700/60 backdrop-blur-md hover:bg-red-600 hover:border-red-600 hover:scale-110 active:scale-95 transition-all duration-200 transform-gpu" 
           >
             &#10095;
-          </button>
+          </Button>
         )}
       </div>
     </section>
@@ -204,29 +207,36 @@ export function HomePage() {
             <p className="text-xs sm:text-sm lg:text-base text-neutral-300 font-light leading-relaxed max-w-md">
               Os novos mantos chegaram com tecnologia de ponta.
             </p>
-            <button 
-              className="mt-2 px-6 py-3 sm:px-8 sm:py-3.5 bg-red-600 hover:bg-white text-white hover:text-neutral-950 font-extrabold tracking-widest text-xs sm:text-sm uppercase rounded-sm transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-red-900/30 cursor-pointer"
-              onClick={() => navigate('/colecao/2026')}
-            >
-              CONFIRA A COLEÇÃO
-            </button>
+            <Button 
+                type="button"
+                onClick={() => navigate('/colecao/2026')}
+                className="mt-2 px-6 py-3 sm:px-8 sm:py-3.5 bg-red-600 hover:bg-white text-white hover:text-neutral-950 font-extrabold tracking-widest text-xs sm:text-sm uppercase rounded-sm transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 transform-gpu"
+              >
+                CONFIRA A COLEÇÃO
+              </Button>
           </div>
         </section>
-        <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40 hidden md:block">
-          <button 
+       <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40 hidden md:block">
+          <Button 
+            type="button"
             onClick={() => setSidebarAberta(true)}
-            className="group relative flex items-center h-12 w-12 hover:w-56 bg-neutral-900/90 backdrop-blur-md text-white border border-l-0 border-neutral-700/60 rounded-r-xl shadow-2xl transition-all duration-300 ease-out overflow-hidden cursor-pointer hover:bg-red-600 hover:border-red-600"
+            aria-label="Filtrar produtos"
+            className="group relative p-0 h-12 w-12 hover:w-56 justify-start bg-neutral-900/90 backdrop-blur-md text-white border border-l-0 border-neutral-700/60 rounded-r-xl rounded-l-none transition-all duration-300 ease-out overflow-hidden hover:bg-red-600 hover:border-red-600 active:scale-100 transform-gpu"
           >
-            <span className="min-w-12 h-12 flex items-center justify-center text-lg">☰</span>
+            <span className="w-12 h-12 flex items-center justify-center text-lg shrink-0">
+              ☰
+            </span>
             <span className="opacity-0 group-hover:opacity-100 whitespace-nowrap text-xs font-bold tracking-widest uppercase transition-opacity duration-300 pr-4">
               FILTRAR PRODUTOS
             </span>
-          </button>
+          </Button>
         </div>
+
         <div className="px-4 mt-4 md:hidden">
           <Button 
-            className="w-full py-3 bg-neutral-900 border border-neutral-800 text-white font-bold text-xs tracking-widest uppercase rounded-lg shadow-md flex items-center justify-center gap-2 active:bg-neutral-800"
+            type="button"
             onClick={() => setSidebarAberta(true)}
+            className="w-full py-3 bg-neutral-900 border border-neutral-800 text-white font-bold text-xs tracking-widest uppercase rounded-lg gap-2 hover:bg-neutral-800 active:scale-98 transform-gpu"
           >
             <span className="text-base">☰</span> FILTRAR PRODUTOS
           </Button>

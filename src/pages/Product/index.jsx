@@ -615,7 +615,7 @@ export function ProductPage() {
               type="button"
               onClick={closeLightbox}
               aria-label="Fechar"
-              className="absolute top-4 right-6 p-0 w-auto h-auto bg-transparent hover:bg-transparent text-3xl text-neutral-400 hover:text-white font-light transition-colors duration-200 z-[1001] active:scale-90 transform-gpu"
+              className="absolute top-4 right-6 p-0 w-auto h-auto bg-transparent hover:bg-transparent text-3xl text-neutral-400 hover:text-white font-light transition-colors duration-200 z-1001 active:scale-90 transform-gpu"
             >
               &times;
             </Button>
