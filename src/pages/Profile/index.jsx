@@ -4,6 +4,7 @@ import { db } from '../../services/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { Loading } from '../../components/Loading';
+import { Button } from '../../components/Button'
 
 function UserProfileForm({ userData, isEditing, onSave }) {
   const [formData, setFormData] = useState(userData);
@@ -111,13 +112,13 @@ function UserProfileForm({ userData, isEditing, onSave }) {
         }`}
       >
         <div className="overflow-hidden flex justify-end">
-          <button 
+          <Button 
             onClick={handleSubmit}
             tabIndex={isEditing ? 0 : -1}
-            className="w-full sm:w-auto px-6 py-2.5 bg-[#9C2A32] hover:bg-[#88242B] text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-all duration-200 ease-out cursor-pointer active:scale-[0.985]"
+            className="sm:w-auto py-2.5 bg-[#9C2A32] hover:bg-[#88242B] rounded-xl text-xs active:scale-[0.985]"
           >
             Confirmar Alterações
-          </button>
+          </Button>
         </div>
       </div>
     </section>
@@ -280,26 +281,30 @@ export function ProfilePage() {
               </div>
             </div>
 
-            <button 
+           <Button 
               onClick={() => setIsEditing(!isEditing)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 ease-out cursor-pointer active:scale-[0.985] ${
+              className={`w-auto px-4 py-2.5 rounded-xl font-medium tracking-wide border ${
                 isEditing 
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/15' 
-                  : 'bg-white/4 text-neutral-200 border border-white/8 hover:bg-white/8 hover:text-white hover:border-white/15'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/15' 
+                  : 'bg-white/4 text-neutral-200 border-white/8 hover:bg-white/8 hover:text-white hover:border-white/15'
               }`}
             >
               {isEditing ? (
                 <>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   CANCELAR EDIÇÃO
                 </>
               ) : (
                 <>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
                   EDITAR PERFIL
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -364,12 +369,12 @@ export function ProfilePage() {
             </div>
 
             <div className="mt-6 pt-5 border-t border-white/6">
-              <button 
+             <Button 
                 onClick={() => navigate(cartItems.length > 0 ? '/cart' : '/')}
-                className="w-full py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-all duration-200 ease-out cursor-pointer active:scale-[0.985]"
+                className="py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] text-xs rounded-xl active:scale-[0.985]"
               >
                 {cartItems.length > 0 ? 'Ver Carrinho Completo' : 'Adicionar Produtos'}
-              </button>
+              </Button>
             </div>
           </section>
         </div>
@@ -462,13 +467,15 @@ export function ProfilePage() {
             </div>
 
             <div className="mt-6 pt-5 border-t border-white/6">
-              <button 
+             <Button 
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-transparent hover:bg-rose-500/10 text-neutral-400 hover:text-rose-400 border border-white/8 hover:border-rose-500/20 text-xs font-medium tracking-wider uppercase rounded-xl transition-all duration-200 ease-out cursor-pointer active:scale-[0.985]"
+                className="py-2.5 px-4 bg-transparent hover:bg-rose-500/10 text-neutral-400 hover:text-rose-400 border border-white/8 hover:border-rose-500/20 text-xs font-medium rounded-xl active:scale-[0.985]"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
                 Encerrar Sessão
-              </button>
+              </Button>
             </div>
           </section>
 
