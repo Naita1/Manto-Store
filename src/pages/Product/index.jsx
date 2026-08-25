@@ -8,6 +8,7 @@ import { db } from '../../services/firebase';
 import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { ShippingCalculator } from '../../components/ShippingCalculator';
+import { Button } from '../../components/Button'
 
 const FALLBACK_IMAGE = 'https://placehold.co/600x600/1E1E1E/FFFFFF?text=Sem+Imagem';
 
@@ -269,23 +270,23 @@ export function ProductPage() {
           <div className="lg:col-span-6 w-full flex flex-col-reverse sm:flex-row gap-4">
             <div className="flex sm:flex-col gap-3 w-full sm:w-20 overflow-x-auto sm:overflow-visible py-1 sm:py-0 shrink-0 justify-start scrollbar-none">
               {listaImagens.map((img, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => handleSelectImage(img)}
-                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border transition-all duration-300 ease-out cursor-pointer bg-neutral-900 active:scale-95 transform-gpu ${
-                    imagemPrincipal === img 
-                      ? 'border-[#9C2A32] ring-2 ring-[#9C2A32]/40 scale-[1.03]' 
-                      : 'border-white/8 opacity-60 hover:opacity-100 hover:border-white/20 hover:scale-[1.02]'
-                  }`}
-                >
-                  <img
-                    src={img}
-                    alt={`${produto.title} - Miniatura ${index + 1}`}
-                    className="w-full h-full object-cover pointer-events-none transition-opacity duration-200"
-                    onError={handleImageError}
-                  />
-                </button>
+               <Button
+                key={index}
+                type="button"
+                onClick={() => handleSelectImage(img)}
+                className={`p-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border bg-neutral-900 transition-all duration-200 active:scale-95 ${
+                  imagemPrincipal === img 
+                    ? 'border-[#9C2A32] ring-2 ring-[#9C2A32]/40 scale-[1.03]' 
+                    : 'border-white/8 opacity-60 hover:opacity-100 hover:border-white/20 hover:scale-[1.02]'
+                }`}
+              >
+                <img
+                  src={img}
+                  alt={`${produto.title} - Miniatura ${index + 1}`}
+                  className="w-full h-full object-cover pointer-events-none transition-opacity duration-200"
+                  onError={handleImageError}
+                />
+              </Button>
               ))}
             </div>
             <div
@@ -350,18 +351,18 @@ export function ProductPage() {
               <div className="flex flex-wrap gap-2">
                 {tamanhosDisponiveis.length > 0 ? (
                   tamanhosDisponiveis.map(size => (
-                    <button
-                      key={size}
-                      type="button"
-                      className={`py-2 px-3.5 min-w-13 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 ease-out cursor-pointer active:scale-95 transform-gpu ${
-                        tamanhoSelecionado === size 
-                          ? 'bg-[#9C2A32] text-white shadow-lg shadow-[#9C2A32]/30 border border-[#9C2A32] scale-105' 
-                          : 'bg-[#131316] text-neutral-300 border border-white/8 hover:bg-white/6 hover:border-white/15 hover:text-white'
-                      }`}
-                      onClick={() => setTamanhoSelecionado(size)}
-                    >
-                      {size}
-                    </button>
+                  <Button
+                    key={size}
+                    type="button"
+                    onClick={() => setTamanhoSelecionado(size)}
+                    className={`w-auto py-2 px-3.5 min-w-13 rounded-xl font-bold text-xs border transition-transform duration-150 active:scale-95 transform-gpu ${
+                      tamanhoSelecionado === size 
+                        ? 'bg-[#9C2A32] text-white border-[#9C2A32] scale-105' 
+                        : 'bg-[#131316] text-neutral-300 border-white/8 hover:bg-white/10 hover:border-white/20 hover:text-white'
+                    }`}
+                  >
+                    {size}
+                  </Button>
                   ))
                 ) : (
                   <p className="text-xs text-neutral-400 py-1">Tamanho único ou indisponível</p>
@@ -369,20 +370,25 @@ export function ProductPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <button 
+             <Button 
                 type="button"
-                className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 ease-out flex items-center justify-center gap-2 cursor-pointer border active:scale-[0.98] transform-gpu ${
-                  querPersonalizar 
-                    ? 'bg-[#9C2A32]/15 border-[#9C2A32] text-[#9C2A32] shadow-md shadow-[#9C2A32]/10' 
-                    : 'border-white/12 bg-[#131316] text-neutral-200 hover:bg-white/5 hover:border-white/20'
-                }`}
                 onClick={() => setQuerPersonalizar(!querPersonalizar)}
+                className={`py-2.5 px-4 rounded-xl border transition-all duration-200 ease-out transform-gpu ${
+                  querPersonalizar 
+                    ? 'bg-rose-500/10 border-rose-500/40 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/70 hover:text-rose-300' 
+                    : 'bg-[#131316] text-neutral-200 border-white/12 hover:bg-white/5 hover:border-white/20'
+                }`}
               >
-                <svg className={`w-4 h-4 transition-transform duration-300 ${querPersonalizar ? 'rotate-12 scale-110' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg 
+                  className={`w-4 h-4 transition-transform duration-300 ${querPersonalizar ? 'rotate-12 scale-110' : ''}`} 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
                 PERSONALIZE DE GRAÇA
-              </button>
+              </Button>
 
               <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
                 querPersonalizar ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'
@@ -411,28 +417,33 @@ export function ProductPage() {
                 </div>
               </div>
             </div>
-            <div className="pt-1">
-              <div className="flex items-center rounded-xl overflow-hidden border border-[#9C2A32] bg-[#9C2A32] shadow-lg shadow-[#9C2A32]/20 transform-gpu transition-all duration-200 active:scale-[0.98] hover:shadow-[#9C2A32]/40">
-                <button
-                  type="button"
-                  className="p-3.5 sm:p-4 bg-black/20 hover:bg-black/35 text-white transition-colors duration-200 cursor-pointer flex items-center justify-center border-r border-white/10 active:bg-black/45"
-                  onClick={() => handleAddToCart(false)}
-                  title="Adicionar ao Carrinho"
-                  aria-label="Adicionar ao carrinho"
-                >
-                  <svg className="w-5 h-5 transition-transform duration-200 hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
-                  </svg>
-                </button>
-                <button 
-                  type="button"
-                  className="flex-1 py-3.5 sm:py-4 px-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-transparent hover:bg-[#88242B] transition-colors duration-200 cursor-pointer text-center" 
-                  onClick={() => handleAddToCart(true)}
-                >
-                  COMPRAR AGORA
-                </button>
+           <div className="pt-1">
+              <div className="flex items-center w-full rounded-xl overflow-hidden border border-[#9C2A32] bg-[#9C2A32] transform-gpu transition-transform duration-200 active:scale-[0.98]">
+                  <Button
+                    type="button"
+                    onClick={() => handleAddToCart(false)}
+                    title="Adicionar ao Carrinho"
+                    aria-label="Adicionar ao carrinho"
+                    className="w-auto p-3.5 sm:p-4 rounded-none bg-black/20 hover:bg-black/35 active:bg-black/45 border-r border-white/10 active:scale-100"
+                  >
+                    <svg 
+                      className="w-5 h-5 text-white" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+                    </svg>
+                  </Button>
+                  <Button 
+                    type="button"
+                    onClick={() => handleAddToCart(true)}
+                    className="flex-1 py-3.5 sm:py-4 px-4 text-xs sm:text-sm font-bold bg-transparent hover:bg-black/20 active:bg-black/30 rounded-none active:scale-100" 
+                  >
+                    COMPRAR AGORA
+                  </Button>
+                </div>
               </div>
-            </div>
             <div className="pt-1">
               <ShippingCalculator />
             </div>
@@ -495,21 +506,25 @@ export function ProductPage() {
 
               return (
                 <div key={item.id} className="bg-[#131316] border border-white/8 rounded-2xl overflow-hidden transform-gpu transition-colors duration-200 hover:border-white/15">
-                  <button
+                  <Button
                     type="button"
-                    className={`w-full px-5 py-4 flex justify-between items-center font-semibold text-xs sm:text-sm tracking-wider uppercase text-neutral-200 text-left transition-colors duration-200 cursor-pointer hover:bg-white/2 ${
-                      isOpen ? 'border-b border-white/6' : ''
-                    }`}
                     onClick={() => toggleAccordion(index)}
                     aria-expanded={isOpen}
+                    className={`justify-between px-5 py-4 bg-transparent hover:bg-white/2 text-neutral-200 text-left rounded-none active:scale-100 ${
+                      isOpen ? 'border-b border-white/6' : ''
+                    }`}
                   >
                     <span>{item.title}</span>
-                    <span className={`p-1 rounded-md text-[#9C2A32] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${isOpen ? 'rotate-45' : ''}`}>
+                    <span 
+                      className={`p-1 rounded-md text-[#9C2A32] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
+                        isOpen ? 'rotate-45' : ''
+                      }`}
+                    >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                       </svg>
                     </span>
-                  </button>
+                  </Button>
                   <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
                     isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                   }`}>
@@ -531,14 +546,14 @@ export function ProductPage() {
           <div className="relative flex items-center gap-3 w-full">
             
             {produtosRecomendados.length > 0 && (
-              <button 
+              <Button 
                 type="button"
-                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/10 rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
                 onClick={() => scrollCarousel(-300)} 
                 aria-label="Produtos anteriores"
+                className="hidden sm:flex p-0 w-10 h-10 rounded-full bg-[#131316] text-neutral-300 border border-white/10 text-sm shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 transition-colors duration-200 transform-gpu" 
               >
                 ‹
-              </button>
+              </Button>
             )}
 
             <div 
@@ -577,14 +592,14 @@ export function ProductPage() {
             </div>
 
             {produtosRecomendados.length > 0 && (
-              <button 
+             <Button 
                 type="button"
-                className="hidden sm:flex bg-[#131316] text-neutral-300 border border-white/10 rounded-full w-10 h-10 items-center justify-center text-sm transition-all duration-200 shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 cursor-pointer shadow-lg transform-gpu" 
                 onClick={() => scrollCarousel(300)} 
                 aria-label="Próximos produtos"
+                className="hidden sm:flex p-0 w-10 h-10 rounded-full bg-[#131316] text-neutral-300 border border-white/10 text-sm shrink-0 hover:bg-[#9C2A32] hover:text-white hover:border-[#9C2A32] active:scale-95 transition-colors duration-200 transform-gpu" 
               >
                 ›
-              </button>
+              </Button>
             )}
 
           </div>
@@ -596,13 +611,14 @@ export function ProductPage() {
             }`} z-1000
             onClick={closeLightbox}
           >
-            <button 
+            <Button 
               type="button"
-              className="absolute top-4 right-6 text-3xl text-neutral-400 hover:text-white transition-colors duration-200 font-light z-1001"
               onClick={closeLightbox}
+              aria-label="Fechar"
+              className="absolute top-4 right-6 p-0 w-auto h-auto bg-transparent hover:bg-transparent text-3xl text-neutral-400 hover:text-white font-light transition-colors duration-200 z-[1001] active:scale-90 transform-gpu"
             >
               &times;
-            </button>
+            </Button>
             <img 
               src={imagemPrincipal} 
               alt={produto.title} 
