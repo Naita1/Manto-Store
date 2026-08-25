@@ -98,16 +98,16 @@ export function LoginCard() {
           required
         />
 
-        <div className="flex justify-end -mt-1 mb-2">
-          <button
-            type="button"
-            className="text-xs text-neutral-400 hover:text-primary transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-            onClick={handleForgotPassword}
-            disabled={loading}
-          >
-            Esqueci minha senha
-          </button>
-        </div>
+     <div className="flex justify-end -mt-1 mb-2">
+        <Button 
+          type="button"
+          onClick={handleForgotPassword}
+          disabled={loading}
+          className="w-auto h-auto p-0 bg-transparent hover:bg-transparent normal-case rounded-none text-xs text-neutral-400 hover:text-primary transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed transform-gpu"
+        >
+          Esqueci minha senha
+        </Button>
+      </div>
 
         <Button type="submit" disabled={loading}>
           Entrar
