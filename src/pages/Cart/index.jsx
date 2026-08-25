@@ -5,6 +5,7 @@ import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../../contexts/AuthContext'; 
 import { Loading } from '../../components/Loading';
 import { ShippingCalculator } from '../../components/ShippingCalculator'; 
+import { Button } from '../../components/Button'; 
 
 export function CartPage() {
   const [cartItems, setCartItems] = useState([]);
@@ -148,12 +149,13 @@ export function CartPage() {
           <p className="text-xs text-neutral-400 font-normal leading-relaxed mb-6">
             Você precisa estar conectado em uma conta para visualizar seu carrinho.
           </p>
-          <button 
-            className="w-full py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-[background-color,transform] duration-200 ease-out cursor-pointer active:scale-[0.985]"
+          <Button 
+            type="button"
             onClick={() => navigate('/login')}
+            className="w-full py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-all duration-200 ease-out active:scale-[0.985] transform-gpu"
           >
             Ir para Login
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -275,32 +277,37 @@ export function CartPage() {
 
                     <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-white/4">
                       <div className="flex items-center gap-2 bg-white/3 border border-white/8 p-1 rounded-xl">
-                        <button 
+                        <Button 
+                          type="button"
                           aria-label="Diminuir quantidade"
-                          className="w-7 h-7 rounded-lg bg-white/4 hover:bg-white/10 active:scale-95 text-white flex items-center justify-center text-xs font-bold transition-[background-color,transform] duration-150 cursor-pointer"
                           onClick={() => updateQuantity(item.productId, item.size, item.quantity - 1)}
+                          className="p-0 w-7 h-7 rounded-lg bg-white/4 hover:bg-white/10 active:scale-95 text-white text-xs font-bold transition-all duration-150 transform-gpu"
                         >
                           −
-                        </button>
+                        </Button>
                         <span className="font-mono text-xs font-medium min-w-6 text-center text-white tabular-nums">
                           {item.quantity}
                         </span>
-                        <button 
+                        <Button 
+                          type="button"
                           aria-label="Aumentar quantidade"
-                          className="w-7 h-7 rounded-lg bg-white/4 hover:bg-white/10 active:scale-95 text-white flex items-center justify-center text-xs font-bold transition-[background-color,transform] duration-150 cursor-pointer"
                           onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
+                          className="p-0 w-7 h-7 rounded-lg bg-white/4 hover:bg-white/10 active:scale-95 text-white text-xs font-bold transition-all duration-150 transform-gpu"
                         >
                           +
-                        </button>
+                        </Button>
                       </div>
-
-                      <button 
-                        className="p-2 text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors duration-200 cursor-pointer"
+                     <Button 
+                        type="button"
                         title="Remover item"
+                        aria-label="Remover item"
                         onClick={() => removeItem(item.productId, item.size)}
+                        className="p-2 bg-transparent text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors duration-200 active:scale-95 transform-gpu"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -359,15 +366,14 @@ export function CartPage() {
                 {cartItems.length === 0 ? 'Endereço indisponível' : dadosEntrega}
               </p>
             </div>
-
-            <button 
-              className="w-full py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] disabled:bg-white/4 disabled:text-neutral-600 disabled:border disabled:border-white/4 disabled:cursor-not-allowed text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-[background-color,border-color,color,transform] duration-200 ease-out cursor-pointer active:scale-[0.985]"
+           <Button 
+              type="button"
               disabled={cartItems.length === 0}
+              className="w-full py-3 px-4 bg-[#9C2A32] hover:bg-[#88242B] disabled:bg-white/4 disabled:text-neutral-600 disabled:border disabled:border-white/4 disabled:cursor-not-allowed text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-all duration-200 ease-out active:scale-[0.985] transform-gpu"
             >
               Finalizar Compra
-            </button>
+            </Button>
           </section>
-
         </div>
       </main>
     </div>
