@@ -32,14 +32,7 @@ export function ShippingCalculator({ cartItems = [], onShippingSelected, selecte
       setCep(selectedShipping.cep);
       if (selectedShipping.cidade) setCidade(selectedShipping.cidade);
     }
-  }, [selectedShipping]);
-
-  useEffect(() => {
-    const cepLimpo = cep.replace(/\D/g, '');
-    if (cepLimpo.length === 8 && opcoes.length > 0 && cartItems.length > 0) {
-      calcular(false);
-    }
-  }, [cartItems]);
+  }, [selectedShipping, cep]);
 
   const handleCepChange = (e) => {
     let v = e.target.value.replace(/\D/g, '');
@@ -99,7 +92,7 @@ export function ShippingCalculator({ cartItems = [], onShippingSelected, selecte
     ];
   }, []);
 
-  const calcular = async (exibirErro = true, idForcado = null) => {
+  const calcular = useCallback(async (exibirErro = true, idForcado = null) => {
     const cepLimpo = cep.replace(/\D/g, '');
     if (cepLimpo.length !== 8) {
       if (exibirErro) toast.error('CEP inválido');
@@ -151,7 +144,14 @@ export function ShippingCalculator({ cartItems = [], onShippingSelected, selecte
     } finally {
       setLoading(false);
     }
-  };
+  }, [cep, gerarFreteDinamico, cartItems, selecionadoId, selectedShipping, onShippingSelected]);
+
+  useEffect(() => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length === 8 && opcoes.length > 0 && cartItems.length > 0) {
+      calcular(false);
+    }
+  }, [cep, opcoes.length, cartItems, calcular]);
 
   const selecionarOpcao = (opt) => {
     setSelecionadoId(opt.id);

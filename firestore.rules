@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticatedUser(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    match /camisas/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /produtos/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /carrinhos/{userId} {
+      allow read, write: if isAuthenticatedUser(userId);
+    }
+
+    match /users/{userId} {
+      allow read, write: if isAuthenticatedUser(userId);
+    }
+
+    match /profiles/{userId} {
+      allow read, write: if isAuthenticatedUser(userId);
+    }
+
+    match /orders/{orderId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

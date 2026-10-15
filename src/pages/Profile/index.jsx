@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/authContextValue';
 import { db } from '../../services/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
@@ -8,10 +8,6 @@ import { Button } from '../../components/Button'
 
 function UserProfileForm({ userData, isEditing, onSave }) {
   const [formData, setFormData] = useState(userData);
-
-  useEffect(() => {
-    setFormData(userData);
-  }, [userData, isEditing]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -282,7 +278,7 @@ export function ProfilePage() {
             </div>
 
            <Button 
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => setIsEditing((current) => !current)}
               className={`w-auto px-4 py-2.5 rounded-xl font-medium tracking-wide border ${
                 isEditing 
                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/15' 
@@ -314,6 +310,7 @@ export function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch animate-reveal stagger-2">
           
           <UserProfileForm 
+            key={`${user?.uid}-${isEditing}`}
             userData={userData} 
             isEditing={isEditing} 
             onSave={handleSave} 

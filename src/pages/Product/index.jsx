@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { doc, getDoc, collection, query, limit, getDocs, updateDoc, setDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/authContextValue';
 import { db } from '../../services/firebase';
 import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';
@@ -30,7 +30,7 @@ export function ProductPage() {
   
   const [produto, setProduto] = useState(null);
   const [produtosRecomendados, setProdutosRecomendados] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedProductId, setLoadedProductId] = useState(null);
   const [imagemPrincipal, setImagemPrincipal] = useState('');
   const [imgChanging, setImgChanging] = useState(false);
   
@@ -47,7 +47,8 @@ export function ProductPage() {
   const zoomImgRef = useRef(null);
 
   const listaImagens = produto?.image?.length > 0 ? produto.image : [FALLBACK_IMAGE];
-  const tamanhosDisponiveis = produto?.sizes || [];
+  const tamanhosDisponiveis = useMemo(() => produto?.sizes || [], [produto?.sizes]);
+  const loading = loadedProductId !== id;
   
   const veioDeFiltro = location.state?.veioDeFiltro;
   const filtroTimeAtivo = location.state?.filtroTimeAtivo; 
@@ -165,27 +166,32 @@ export function ProductPage() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    setProduto(null);
-    setTamanhoSelecionado('');
-    setQuerPersonalizar(false);
-    setNomePersonalizado('');
-    setNumeroPersonalizado('');
+    let isCurrent = true;
 
     const buscarProduto = async () => {
       try {
         const docRef = doc(db, 'produtos', id);
         const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const dadosComDesconto = applyPriceLogic({ id: docSnap.id, ...docSnap.data() });
+        if (isCurrent) {
+          const dadosComDesconto = docSnap.exists()
+            ? applyPriceLogic({ id: docSnap.id, ...docSnap.data() })
+            : null;
           setProduto(dadosComDesconto);
-          setImagemPrincipal(dadosComDesconto.image?.[0] || FALLBACK_IMAGE);
+          setImagemPrincipal(dadosComDesconto?.image?.[0] || FALLBACK_IMAGE);
+          setTamanhoSelecionado('');
+          setQuerPersonalizar(false);
+          setNomePersonalizado('');
+          setNumeroPersonalizado('');
+          setLoadedProductId(id);
         }
       } catch (error) {
         console.error("Erro ao buscar detalhes do produto:", error);
+        if (isCurrent) {
+          setProduto(null);
+          setLoadedProductId(id);
+        }
       }
-      setLoading(false);
     };
 
     const buscarProdutosRelacionados = async () => {
@@ -201,7 +207,7 @@ export function ProductPage() {
         });
 
         const embaralhados = produtos.sort(() => 0.5 - Math.random()).slice(0, 10);
-        setProdutosRecomendados(embaralhados);
+        if (isCurrent) setProdutosRecomendados(embaralhados);
       } catch (error) {
         console.error("Erro ao buscar produtos recomendados:", error);
       }
@@ -211,6 +217,9 @@ export function ProductPage() {
       buscarProduto();
       buscarProdutosRelacionados();
     }
+    return () => {
+      isCurrent = false;
+    };
   }, [id]);
 
   if (loading) {

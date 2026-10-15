@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import './Footer.css';
 
 const IconGitHub = () => (
@@ -39,16 +40,16 @@ export function Footer() {
       </div>
 
       <div className="footer-socials">
-        {SOCIAL_LINKS.map(({ href, label, Icon }) => (
+        {SOCIAL_LINKS.map((link) => (
           <a
-            key={label}
-            href={href}
-            target={href !== '#' ? '_blank' : undefined}
-            rel={href !== '#' ? 'noreferrer' : undefined}
+            key={link.label}
+            href={link.href}
+            target={link.href !== '#' ? '_blank' : undefined}
+            rel={link.href !== '#' ? 'noreferrer' : undefined}
             className="footer-social-link"
-            aria-label={label}
+            aria-label={link.label}
           >
-            <Icon />
+            {createElement(link.Icon)}
           </a>
         ))}
       </div>

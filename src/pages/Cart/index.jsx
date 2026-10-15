@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../services/firebase'; 
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { useAuth } from '../../contexts/AuthContext'; 
+import { useAuth } from '../../contexts/authContextValue';
 import { Loading } from '../../components/Loading';
 import { ShippingCalculator } from '../../components/ShippingCalculator'; 
 import { Button } from '../../components/Button'; 

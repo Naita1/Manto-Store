@@ -50,9 +50,11 @@ export function CollectionPage() {
                         break;
 
                     case 'colecao-completa':
+                        {
                         const distribuicao = distribuirProdutos(todosOsProdutos);
                         listaFiltrada = distribuicao.outras;
                         break;
+                        }
 
                     default:
                         listaFiltrada = todosOsProdutos.filter(p => 
