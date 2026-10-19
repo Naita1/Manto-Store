@@ -75,10 +75,11 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
         )}
         
         <div 
+          key={`${title}-${produtos.length}`}
           className={
             isGrid 
               ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5 py-2" 
-              : "flex gap-3 sm:gap-5 overflow-x-auto scrollbar-none scroll-smooth py-2 px-0.5"
+              : "home-carousel-track flex gap-3 sm:gap-5 overflow-x-auto scrollbar-none scroll-smooth py-2 px-0.5"
           } 
           ref={carouselRef}
         >
@@ -93,7 +94,7 @@ const ProductSection = ({ title, produtos, isGrid = false, veioDeFiltro = false,
                 price={formatarBRL(p.price)}
                 oldPrice={p.hasDiscount ? formatarBRL(p.originalPrice) : null}
                 discountBadge={p.hasDiscount ? `-${p.discount}%` : null}
-                image={p.image[0]}
+                image={p.image?.[0] || ''}
                 veioDeFiltro={veioDeFiltro} 
                 filtroTimeAtivo={filtroTimeAtivo}
                 className={isGrid ? 'w-full' : 'w-38.75 sm:w-50 md:w-57.5 shrink-0'}

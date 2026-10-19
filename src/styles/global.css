@@ -20,3 +20,25 @@
 body {
   @apply bg-app-bg text-app-text min-h-screen font-sans;
 }
+
+.home-carousel-track {
+  animation: homeCarouselReveal 500ms ease-out both;
+}
+
+@keyframes homeCarouselReveal {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-carousel-track {
+    animation: none;
+  }
+}

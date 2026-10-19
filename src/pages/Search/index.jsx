@@ -1,10 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, limit, query as firestoreQuery, startAfter } from 'firebase/firestore';
 import { db } from '../../services/firebase'; 
 import { ProductCard } from '../../components/ProductCard';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { formatarBRL } from '../../utils/productDistribution';
+
+const PAGE_SIZE = 10;
+
+async function fetchSearchPage(cursor) {
+  const constraints = [];
+  if (cursor) constraints.push(startAfter(cursor));
+  constraints.push(limit(PAGE_SIZE));
+
+  return getDocs(firestoreQuery(collection(db, 'produtos'), ...constraints));
+}
+
+function normalizeText(text) {
+  return text ? text.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+}
+
+function filterProducts(docs, searchTerm) {
+  const normalizedTerm = normalizeText(searchTerm.toLowerCase());
+  return docs
+    .map(doc => applyPriceLogic({ id: doc.id, ...doc.data() }))
+    .filter(product => product.title
+      && normalizeText(product.title.toLowerCase()).includes(normalizedTerm));
+}
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -12,47 +34,68 @@ export function SearchPage() {
   
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [lastVisibleDoc, setLastVisibleDoc] = useState(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
-    const removerAcentos = (texto) => {
-      return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-    };
+    const requestId = ++requestIdRef.current;
+    let active = true;
+    setResultados([]);
+    setLastVisibleDoc(null);
+    setHasMore(false);
+    setLoadingMore(false);
+    setLoading(Boolean(query));
 
     async function buscarResultados() {
-      setLoading(true);
       try {
-        const produtosRef = collection(db, 'produtos');
-        const snapshot = await getDocs(produtosRef);
-        
-        const listaProdutos = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data() 
-        }));
-
-        const processados = listaProdutos.map(p => applyPriceLogic(p));
-        const termoBuscadoLimpo = removerAcentos(query.toLowerCase());
-
-        const produtosFiltrados = processados.filter(produto => {
-          if (!produto.title) return false;
-          const tituloProdutoLimpo = removerAcentos(produto.title.toLowerCase());
-          return tituloProdutoLimpo.includes(termoBuscadoLimpo);
-        });
-        
-        setResultados(produtosFiltrados);
+        const snapshot = await fetchSearchPage(null);
+        if (!active || requestId !== requestIdRef.current) return;
+        setResultados(filterProducts(snapshot.docs, query));
+        setLastVisibleDoc(snapshot.docs.at(-1) || null);
+        setHasMore(snapshot.docs.length === PAGE_SIZE);
       } catch (error) {
         console.error("Erro ao buscar resultados:", error);
       } finally {
-        setLoading(false);
+        if (active && requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     }
 
     if (query) {
       buscarResultados();
     } else {
-      setResultados([]);
       setLoading(false);
     }
+
+    return () => {
+      active = false;
+    };
   }, [query]);
+
+  const carregarMais = async () => {
+    if (!hasMore || !lastVisibleDoc || loadingMore) return;
+
+    const requestId = requestIdRef.current;
+    setLoadingMore(true);
+    try {
+      const snapshot = await fetchSearchPage(lastVisibleDoc);
+      if (requestId !== requestIdRef.current) return;
+
+      const novosResultados = filterProducts(snapshot.docs, query);
+      setResultados(resultadosAtuais => [...resultadosAtuais, ...novosResultados]);
+      setLastVisibleDoc(snapshot.docs.at(-1) || lastVisibleDoc);
+      setHasMore(snapshot.docs.length === PAGE_SIZE);
+    } catch (error) {
+      console.error("Erro ao carregar mais resultados:", error);
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setLoadingMore(false);
+      }
+    }
+  };
 
   return (
     <div className="mx-auto max-w-350 w-full min-h-[85vh] px-4 py-6 sm:px-6 sm:py-8 md:py-10 text-neutral-100 font-sans">
@@ -83,7 +126,7 @@ export function SearchPage() {
             Buscando mantos...
           </p>
         </div>
-      ) : resultados.length === 0 ? (
+      ) : resultados.length === 0 && !hasMore ? (
         <div className="flex flex-col items-center justify-center text-center py-16 md:py-20 px-4 gap-5 bg-neutral-900/30 rounded-xl border border-neutral-800/50">
           <div className="w-12 h-12 rounded-xl bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-center text-neutral-400">
             <svg 
@@ -113,7 +156,7 @@ export function SearchPage() {
             Voltar para a Loja
           </Link>
         </div>
-      ) : (
+      ) : resultados.length > 0 ? (
         <main className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6 w-full">
           {resultados.map(produto => (
             <ProductCard 
@@ -128,6 +171,23 @@ export function SearchPage() {
             />
           ))}
         </main>
+      ) : (
+        <p className="py-8 text-center text-sm text-neutral-400">
+          Ainda não encontramos mantos nesta página. Continue carregando para buscar mais resultados.
+        </p>
+      )}
+      {!loading && hasMore && (
+        <div className="flex justify-center pt-8">
+          <button
+            type="button"
+            onClick={carregarMais}
+            disabled={loadingMore}
+            className="inline-flex items-center gap-2 rounded-md bg-[#e50914] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c00711] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loadingMore && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+            {loadingMore ? 'Carregando...' : 'Carregar mais'}
+          </button>
+        </div>
       )}
     </div>
   );

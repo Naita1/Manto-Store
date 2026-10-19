@@ -46,7 +46,7 @@ const IconLinkedIn = () => (
 
 function FaqItem({ faq, isOpen, onToggle }) {
   return (
-    <div className={`bg-[#0B0B0D] border rounded-xl transition-colors duration-200 overflow-hidden ${isOpen ? 'border-[#9C2A32]/60 bg-white/[0.01]' : 'border-white/6 hover:border-white/12'}`}>
+    <div className={`bg-[#0B0B0D] border rounded-xl transition-colors duration-200 overflow-hidden ${isOpen ? 'border-[#9C2A32]/60 bg-white/1' : 'border-white/6 hover:border-white/12'}`}>
       <button
         className="w-full text-left px-4 py-3.5 sm:px-5 sm:py-4 bg-transparent border-none text-xs sm:text-sm font-medium text-neutral-200 hover:text-white flex justify-between items-center cursor-pointer transition-colors duration-150"
         onClick={onToggle}
@@ -231,7 +231,7 @@ export function Help() {
               href="https://github.com/Naita1"
               target="_blank"
               rel="noopener noreferrer"
-              className="group bg-[#0B0B0D] border border-white/6 hover:border-[#9C2A32]/50 hover:bg-white/[0.02] p-5 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 no-underline active:scale-[0.985] transform-gpu"
+              className="group bg-[#0B0B0D] border border-white/6 hover:border-[#9C2A32]/50 hover:bg-white/2 p-5 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 no-underline active:scale-[0.985] transform-gpu"
             >
               <IconGitHub />
               <h3 className="text-xs font-semibold text-neutral-200 group-hover:text-white mb-1">GitHub</h3>
@@ -242,7 +242,7 @@ export function Help() {
               href="https://www.linkedin.com/in/taina-cl-ribeiro/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group bg-[#0B0B0D] border border-white/6 hover:border-[#9C2A32]/50 hover:bg-white/[0.02] p-5 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 no-underline active:scale-[0.985] transform-gpu"
+              className="group bg-[#0B0B0D] border border-white/6 hover:border-[#9C2A32]/50 hover:bg-white/2 p-5 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 no-underline active:scale-[0.985] transform-gpu"
             >
               <IconLinkedIn />
               <h3 className="text-xs font-semibold text-neutral-200 group-hover:text-white mb-1">LinkedIn</h3>

@@ -1,17 +1,47 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, limit, query, startAfter } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { ProductCard } from '../../components/ProductCard';
 import { Loading } from '../../components/Loading';
 import { applyPriceLogic } from '../../utils/offerRules';
 import { distribuirProdutos } from '../../utils/productDistribution';
 
+const PAGE_SIZE = 10;
+
 export function CollectionPage() {
     const { id } = useParams(); 
     const navigate = useNavigate();
-    const [produtos, setProdutos] = useState([]);
+    const [produtosCarregados, setProdutosCarregados] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+    const [lastVisibleDoc, setLastVisibleDoc] = useState(null);
+    const requestIdRef = useRef(0);
+
+    let produtos = [];
+    switch (id) {
+        case 'os-mais-desejados':
+            produtos = produtosCarregados.slice(0, 20);
+            break;
+
+        case 'ofertas-de-tempo-limitado':
+            produtos = produtosCarregados.filter(p => p.hasDiscount);
+            break;
+
+        case 'lancamentos':
+            produtos = produtosCarregados.filter(p => p.title?.includes('2026')).slice(0, 20);
+            break;
+
+        case 'colecao-completa':
+            produtos = distribuirProdutos(produtosCarregados).outras;
+            break;
+
+        default:
+            produtos = produtosCarregados.filter(p =>
+                p.title?.toUpperCase().includes(id.toUpperCase())
+            );
+    }
 
     const getPageTitle = () => {
         if (id === 'os-mais-desejados') return { tag: 'TRENDING', main: 'OS MAIS', sub: 'DESEJADOS' };
@@ -25,52 +55,81 @@ export function CollectionPage() {
 
     useEffect(() => {
         window.scrollTo(0, 0);
+        const requestId = ++requestIdRef.current;
+        let active = true;
+
+        setProdutosCarregados([]);
+        setLastVisibleDoc(null);
+        setHasMore(false);
+        setLoading(true);
+        setLoadingMore(false);
+
         async function fetchCollection() {
-            setLoading(true);
             try {
-                const querySnapshot = await getDocs(collection(db, 'produtos'));
-                const todosOsProdutos = querySnapshot.docs.map(doc => ({ 
+                const querySnapshot = await getDocs(query(
+                    collection(db, 'produtos'),
+                    limit(PAGE_SIZE),
+                ));
+                if (!active || requestId !== requestIdRef.current) return;
+
+                let novosProdutos = querySnapshot.docs.map(doc => ({
                     id: doc.id, 
                     ...doc.data() 
                 })).map(p => applyPriceLogic(p));
-
-                let listaFiltrada = [];
-
-                switch (id) {
-                    case 'os-mais-desejados':
-                        listaFiltrada = [...todosOsProdutos].sort(() => Math.random() - 0.5).slice(0, 20);
-                        break;
-                    
-                    case 'ofertas-de-tempo-limitado':
-                        listaFiltrada = todosOsProdutos.filter(p => p.hasDiscount);
-                        break;
-
-                    case 'lancamentos':
-                        listaFiltrada = todosOsProdutos.filter(p => p.title.includes('2026')).slice(0, 20);
-                        break;
-
-                    case 'colecao-completa':
-                        {
-                        const distribuicao = distribuirProdutos(todosOsProdutos);
-                        listaFiltrada = distribuicao.outras;
-                        break;
-                        }
-
-                    default:
-                        listaFiltrada = todosOsProdutos.filter(p => 
-                            p.title.toUpperCase().includes(id.toUpperCase())
-                        );
+                if (id === 'os-mais-desejados') {
+                    novosProdutos = novosProdutos.sort(() => Math.random() - 0.5);
                 }
 
-                setProdutos(listaFiltrada);
+                setProdutosCarregados(novosProdutos);
+                setLastVisibleDoc(querySnapshot.docs.at(-1) || null);
+                setHasMore(querySnapshot.docs.length === PAGE_SIZE);
             } catch (error) {
                 console.error("Erro ao carregar coleção:", error);
             } finally {
-                setLoading(false);
+                if (active && requestId === requestIdRef.current) {
+                    setLoading(false);
+                }
             }
         }
         fetchCollection();
+
+        return () => {
+            active = false;
+        };
     }, [id]);
+
+    const carregarMais = async () => {
+        if (!hasMore || !lastVisibleDoc || loadingMore) return;
+
+        const requestId = requestIdRef.current;
+        setLoadingMore(true);
+        try {
+            const querySnapshot = await getDocs(query(
+                collection(db, 'produtos'),
+                startAfter(lastVisibleDoc),
+                limit(PAGE_SIZE),
+            ));
+            if (requestId !== requestIdRef.current) return;
+
+            let novosProdutos = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            })).map(p => applyPriceLogic(p));
+            if (id === 'os-mais-desejados') {
+                novosProdutos = novosProdutos.sort(() => Math.random() - 0.5);
+            }
+
+            setProdutosCarregados(produtosAtuais => [...produtosAtuais, ...novosProdutos]);
+            setLastVisibleDoc(querySnapshot.docs.at(-1) || lastVisibleDoc);
+            setHasMore(querySnapshot.docs.length === PAGE_SIZE);
+        } catch (error) {
+            console.error("Erro ao carregar mais produtos da coleção:", error);
+        } finally {
+            if (requestId === requestIdRef.current) {
+                setLoadingMore(false);
+            }
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#09090b] text-neutral-100 relative font-sans antialiased selection:bg-[#9C2A32] selection:text-white">
@@ -131,28 +190,39 @@ export function CollectionPage() {
                         <div className="col-span-full w-full py-24 flex justify-center items-center">
                             <Loading message="Carregando catálogo de mantos..." />
                         </div>
-                    ) : produtos.length === 0 ? (
+                    ) : produtos.length === 0 && !hasMore ? (
                         <div className="col-span-full py-20 text-center text-neutral-500 text-sm">
                             Nenhum manto encontrado nesta coleção.
                         </div>
-                    ) : (
-                        produtos.map(p => (
-                            <div 
-                                className="w-full flex transition-transform duration-200 ease-out hover:-translate-y-1 transform-gpu will-change-transform" 
-                                key={p.id}
-                            >
-                                <ProductCard 
-                                    id={p.id}
-                                    title={p.title}
-                                    price={p.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                    oldPrice={p.hasDiscount ? p.originalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : null}
-                                    discountBadge={p.hasDiscount ? `-${p.discount}%` : null}
-                                    image={p.image[0]}
-                                />
-                            </div>
-                        ))
-                    )}
+                    ) : produtos.map(p => (
+                        <div
+                            className="w-full flex transition-transform duration-200 ease-out hover:-translate-y-1 transform-gpu will-change-transform"
+                            key={p.id}
+                        >
+                            <ProductCard
+                                id={p.id}
+                                title={p.title}
+                                price={p.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                oldPrice={p.hasDiscount ? p.originalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : null}
+                                discountBadge={p.hasDiscount ? `-${p.discount}%` : null}
+                                image={p.image?.[0] || ''}
+                            />
+                        </div>
+                    ))}
                 </div>
+                {!loading && hasMore && (
+                    <div className="flex justify-center pt-8">
+                        <button
+                            type="button"
+                            onClick={carregarMais}
+                            disabled={loadingMore}
+                            className="inline-flex items-center gap-2 rounded-md bg-[#9C2A32] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#7f2028] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {loadingMore && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+                            {loadingMore ? 'Carregando...' : 'Carregar mais'}
+                        </button>
+                    </div>
+                )}
             </main>
         </div>
     );
