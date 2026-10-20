@@ -1,552 +1,138 @@
-# 🏆 Manto Store
+# Manto Store
 
-<div align="center">
+<p align="center">
+  <a href="https://manto-store-eight.vercel.app/"><strong>Acessar a aplicação</strong></a>
+</p>
 
-[![Vercel Deploy](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)](https://manto-store-eight.vercel.app/)
-[![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Firebase](https://img.shields.io/badge/firebase-%23FFA400.svg?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
+<p align="center">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white">
+  <img alt="Vite 8" src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white">
+  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-Auth%20%26%20Firestore-FFCA28?logo=firebase&logoColor=black">
+  <img alt="Vitest" src="https://img.shields.io/badge/Vitest-enabled-6E9F18?logo=vitest&logoColor=white">
+  <img alt="ESLint" src="https://img.shields.io/badge/ESLint-configured-4B32C3?logo=eslint&logoColor=white">
+  <img alt="SPA" src="https://img.shields.io/badge/SPA-enabled-2563EB">
+  <img alt="PWA não configurado" src="https://img.shields.io/badge/PWA-not%20configured-lightgrey">
+</p>
 
-**Plataforma de e-commerce premium para camisas de futebol com experiência de usuário imersiva, design dark moderno e navegação fluida.**
+**Manto Store** é uma aplicação de e-commerce especializada em camisas de futebol. A experiência combina catálogo organizado por coleções, busca paginada, autenticação e carrinho sincronizado, com uma interface responsiva construída para navegação fluida.
 
-[🚀 Acessar Aplicação](#-acessar-aplicação) • [📋 Funcionalidades](#-funcionalidades-principais) • [🛠️ Stack Técnico](#-stack-técnico) • [📁 Estrutura](#-estrutura-do-projeto)
+> O projeto é uma SPA. Não há configuração de instalação offline ou manifesto de PWA neste repositório.
 
-</div>
+## Arquitetura e decisões técnicas
 
----
+### Arquitetura de aplicação
 
-## 🎯 Sobre o Projeto
+- **Frontend:** React 19 e Vite 8, com navegação cliente por React Router.
+- **Backend como serviço (BaaS):** Firebase Authentication para sessão e Firebase Firestore como persistência NoSQL.
+- **Organização:** páginas por rota, componentes reutilizáveis, contexto de autenticação, serviços de integração e utilitários de domínio.
+- **Entrega:** build estático gerado pelo Vite, adequado a hospedagem em plataforma de conteúdo estático.
 
-**Manto Store** é uma aplicação web full-stack que apresenta uma experiência de compra premium para entusiastas de futebol. O projeto foi desenvolvido com foco em design intuitivo, performance otimizada e integração completa com banco de dados em tempo real.
+### Performance
 
-### 💡 Proposta Principal
+- **Code splitting por rota:** páginas são carregadas com `React.lazy` e exibem estados de carregamento com `Suspense`. No build atual, chunks individuais de páginas ficam abaixo de 350 kB. O chunk compartilhado do Firebase mede aproximadamente **351,5 kB sem gzip**; portanto, o limite de 350 kB não se aplica a todos os chunks.
+- **Paginação com cursores Firestore:** busca e coleções carregam resultados em páginas, usando `limit` e `startAfter` com o último documento recebido, evitando paginação por deslocamento.
+- **Ciclo de vida controlado:** efeitos limpam inscrições em tempo real e timers no desmontar do componente. A busca também evita aplicar resultados de requisições obsoletas.
+- **Memoização pontual:** callbacks do carrinho e da calculadora de frete usam `useCallback`; cálculos são mantidos próximos dos dados que os alimentam, sem memoização indiscriminada.
 
-Criar um marketplace especializado em camisas de futebol que combine:
-- **Interface imersiva** com tema escuro premium
-- **Personalização em tempo real** (nome e número na camisa)
-- **Cálculo dinâmico de frete** com múltiplas opções de entrega
-- **Autenticação segura** e gestão de perfil de usuário
-- **Sincronização real-time** entre usuários e banco de dados
-- **Design responsivo** para todos os dispositivos
+### Segurança e acesso a dados
 
----
+As regras de [firestore.rules](./firestore.rules) adotam negação por padrão e permissões específicas por coleção:
 
-## 🚀 Acessar Aplicação
+- Carrinhos (`carrinhos`) e documentos de usuário (`users` e `profiles`) são acessíveis apenas ao usuário cujo UID corresponde ao caminho do documento (`request.auth.uid`).
+- Produtos (`camisas`, `products` e `produtos`) têm leitura pública e escrita restrita a tokens autenticados com a custom claim `admin: true`.
+- Pedidos (`orders`) podem ser lidos pelo usuário autenticado associado ao pedido; as regras não concedem gravação pelo cliente nessa coleção.
+- A regra final bloqueia qualquer acesso que não tenha sido explicitamente permitido.
 
-**[Manto Store - Live Demo](https://manto-store-eight.vercel.app/)**
+> As regras do Firestore são a fronteira de autorização dos dados. A configuração de claims administrativas e a validação de fluxos de negócio devem ser feitas em ambiente confiável, não pelo cliente.
 
-> Acesse a aplicação deployada na Vercel e explore todas as funcionalidades
+## Qualidade e engenharia de software
 
----
+- **Vitest + React Testing Library:** testes de componentes e contextos em ambiente `jsdom`.
+- **Escopo validado:** carrinho, busca, paginação de busca e coleções, além do estado de autenticação.
+- **Isolamento de dependências externas:** testes mockam Firebase Auth e Firestore, sem depender de serviços remotos.
+- **ESLint:** configuração de lint para validar o código JavaScript/JSX. A execução realizada para esta revisão terminou com **0 erros e 0 avisos**.
 
-## ✨ Funcionalidades Principais
+O comando `npm run lint` verifica o código configurado pelo ESLint; ele não analisa a formatação nem o conteúdo deste README.
 
-### 🛍️ Catálogo & Produto
-
-- **Galeria Interativa com Zoom**
-  - Sistema de miniaturas para navegação fluida
-  - Efeito de lupa (zoom) ao passar o mouse
-  - Precarregamento automático de imagens
-
-- **Personalização de Manto** ⚽
-  - Adicione nome e número personalizados
-  - Visualização em tempo real
-  - Validação de caracteres
-
-- **Calculadora de Frete Dinâmica**
-  - Cálculo baseado em CEP
-  - Múltiplas opções de entrega
-  - Prazos por região
-  - Simulação em tempo real
-
-- **Acordeões de Informação**
-  - Descrição detalhada
-  - Tabela de medidas
-  - Avaliações (espaço preparado)
-  - FAQ de dúvidas
-
-- **Carrossel de Recomendações**
-  - "Você também pode gostar"
-  - Navegação suave
-  - Produtos relacionados
-
-### 🛒 Carrinho & Checkout
-
-- **Carrinho Inteligente**
-  - Controle de quantidade (+ / -)
-  - Agrupamento automático de itens idênticos
-  - Cálculo automático de subtotal/total
-  - Sincronização real-time com Firebase
-
-- **Resumo do Pedido**
-  - Visualização clara de itens
-  - Endereço de entrega
-  - Método de pagamento
-  - Total com impostos
-
-### 👤 Autenticação & Perfil
-
-- **Sistema de Autenticação**
-  - Registro e login seguros
-  - Recuperação de senha
-  - Validação de email
-  - Sessão persistente
-
-- **Painel do Usuário**
-  - Gerenciamento de dados pessoais
-  - Histórico de pedidos
-  - Preferências de notificação
-  - Endereços salvos
-
-### 🔍 Busca & Filtros
-
-- **Busca Avançada**
-  - Busca por nome/palavras-chave
-  - Filtro por coleções (times)
-  - Filtro por preço
-  - Ordenação (preço, popularidade)
-
-- **Navegação Inteligente**
-  - Sistema de coleções
-  - Sidebar dinâmica
-  - Breadcrumbs de navegação
-  - Links de filtros rápidos
-
-### 💬 Suporte & Experiência
-
-- **Chat Support** (UI preparada)
-  - Botão flutuante
-  - Central de ajuda
-  - FAQ integrado
-  - Sistema de notificações toast
-
----
-
-## 🛠️ Stack Técnico
-
-### Frontend
-| Tecnologia | Versão | Uso |
-|:---|:---:|:---|
-| **React** | 19.2.4 | Biblioteca principal para UI |
-| **Vite** | 8.0.1 | Build tool e dev server |
-| **React Router DOM** | 7.14.1 | Roteamento SPA e navegação |
-| **Tailwind CSS** | 4.3.0 | Estilização e utilidades (preparado) |
-| **Lucide React** | 1.16.0 | Ícones vetoriais modernos |
-| **React Hot Toast** | 2.6.0 | Notificações e toasts |
-
-### Backend & Infraestrutura
-| Tecnologia | Versão | Uso |
-|:---|:---:|:---|
-| **Firebase Firestore** | 12.11.0 | Banco de dados NoSQL em tempo real |
-| **Firebase Auth** | 12.11.0 | Autenticação e gerenciamento de sessão |
-| **PrimeReact** | 10.9.7 | Componentes UI adicionais |
-| **Radix UI** | 1.4.3 | Componentes acessíveis |
-
-### Utilitários & Dev
-| Tecnologia | Uso |
-|:---|:---|
-| **ESLint** | Linting e padronização de código |
-| **Vite TSConfig Paths** | Aliases para imports |
-| **PostCSS & Autoprefixer** | Processamento e compatibilidade CSS |
-
-### Características de Implementação
-- ✅ CSS custom construído do zero (pixel perfect)
-- ✅ Animações avançadas (keyframes, transições grid)
-- ✅ Responsividade completa (mobile-first)
-- ✅ Sincronização real-time com Firestore
-- ✅ Context API para gerenciamento de estado
-- ✅ Hooks customizados e otimizações
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-manto-store/
-├── src/
-│   ├── components/               # Componentes reutilizáveis
-│   │   ├── Button/              # Botão genérico
-│   │   ├── Header/              # Navegação principal
-│   │   ├── Footer/              # Rodapé
-│   │   ├── ProductCard/         # Card de produto
-│   │   ├── ShippingCalculator/  # Calculadora de frete
-│   │   ├── LoginCard/           # Formulário de login
-│   │   ├── RegisterCard/        # Formulário de registro
-│   │   ├── Input/               # Campo de input
-│   │   ├── Loading/             # Skeleton/loader
-│   │   ├── ChatButton/          # Suporte flutuante
-│   │   ├── Sidebar/             # Filtros laterais
-│   │   ├── Toast/               # Sistema de notificações
-│   │   ├── Help/                # Central de ajuda
-│   │   └── MainLayout/          # Layout principal
-│   │
-│   ├── pages/                    # Páginas (rotas)
-│   │   ├── Home/                # Homepage com catálogo
-│   │   ├── Product/             # Detalhes do produto
-│   │   ├── Cart/                # Carrinho de compras
-│   │   ├── Collection/          # Coleção de produtos
-│   │   ├── Search/              # Página de busca
-│   │   ├── Login/               # Página de login
-│   │   ├── Register/            # Página de registro
-│   │   └── Profile/             # Perfil do usuário
-│   │
-│   ├── contexts/                 # Context API
-│   │   └── AuthContext.jsx      # Contexto de autenticação
-│   │
-│   ├── services/                 # Serviços externos
-│   │   └── firebase.js          # Configuração Firebase
-│   │
-│   ├── utils/                    # Funções utilitárias
-│   │   ├── offerRules.js        # Lógica de descontos
-│   │   └── productDistribution.js # Distribuição de produtos
-│   │
-│   ├── styles/                   # Estilos globais
-│   │   └── global.css           # CSS global
-│   │
-│   ├── assets/                   # Imagens e midia
-│   ├── App.jsx                  # Componente raiz
-│   └── main.jsx                 # Entry point
-│
-├── public/                       # Arquivos estáticos
-├── vite.config.js               # Configuração Vite
-├── eslint.config.js             # Configuração ESLint
-├── components.json              # Config componentes
-└── package.json                 # Dependências e scripts
-```
-
----
-
-## 🏗️ Arquitetura & Fluxo
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    MANTO STORE - ARQUITETURA             │
-└─────────────────────────────────────────────────────────┘
-
-FRONTEND (React + Vite)
-├── Pages (Roteadas com React Router)
-│   ├── HomePage (Catálogo + Carrossel)
-│   ├── ProductPage (Detalhes + Personalização)
-│   ├── CartPage (Carrinho + Cálculo)
-│   ├── SearchPage (Busca avançada)
-│   └── ProfilePage (Dados do usuário)
-│
-├── Components (Reutilizáveis)
-│   ├── Header (Navegação)
-│   ├── Sidebar (Filtros)
-│   └── ProductCard (Card do produto)
-│
-└── Context (Gerenciamento de Estado)
-    └── AuthContext (Usuário + Sessão)
-
-        ↓ ↓ ↓
-
-BACKEND (Firebase)
-├── Firestore (Banco de dados)
-│   ├── Products (Catálogo)
-│   ├── Users (Perfis)
-│   ├── Carts (Carrinhos)
-│   └── Orders (Pedidos)
-│
-└── Authentication (Firebase Auth)
-    ├── Email/Password
-    ├── Session Management
-    └── Token Handling
-
-        ↓ ↓ ↓
-
-FEATURES
-├── Real-time Sync (onSnapshot)
-├── Dynamic Pricing (Descontos)
-├── Shipping Calculator (CEP-based)
-└── Product Personalization
-```
-
-### Fluxo de Autenticação
-```
-Usuário → Login/Register → Firebase Auth
-                                ↓
-                        Session Verificada
-                                ↓
-                        AuthContext Atualizado
-                                ↓
-                    App Renderiza Conteúdo Protegido
-```
-
-### Fluxo de Compra
-```
-Produto → Personalização → Carrinho (Real-time)
-                                ↓
-                        Cálculo de Frete
-                                ↓
-                        Resumo do Pedido
-                                ↓
-                    Sincronização Firebase
-```
-
----
-
-## 📱 Responsividade
-
-A aplicação foi desenvolvida com **mobile-first approach**:
-
-- ✅ **Desktop** (1024px+) - Layout completo com sidebar
-- ✅ **Tablet** (768px - 1024px) - Adaptações de grid
-- ✅ **Mobile** (320px - 768px) - Navegação otimizada
-- ✅ **Micro-interações** - Animações fluidas em todos os tamanhos
-- ✅ **Touch-friendly** - Botões otimizados para toque
-
----
-
-## 🎨 Design & Identidade Visual
-
-### Paleta de Cores Premium
-
-| Cor | Hexadecimal | Utilização |
-|:---|:---:|:---|
-| **Primary** | `#B22222` | Botões, ícones, destaques, accordeões |
-| **Background** | `#121212` | Fundo principal (Dark Mode) |
-| **Surface** | `#1E1E1E` | Cards, modais, caixas de informação |
-| **Text** | `#FFFFFF` | Textos, títulos, informações primárias |
-
-### Tipografia
-- **Font Family**: Inter Variable (Google Fonts)
-- **Escalas**: Robusta e consistente
-- **Contraste**: AAA (Acessibilidade)
-
-### Componentes Visuais
-- Sistema de ícones vetoriais (Lucide React)
-- Animações customizadas (CSS keyframes)
-- Transições suaves (Grid transitions)
-- Efeitos de hover e estados ativos
-
----
-
-## 🚀 Como Rodar Localmente
+## Desenvolvimento local e emuladores
 
 ### Pré-requisitos
 
-- **Node.js** 16+ e **npm** ou **yarn**
-- Conta **Firebase** (Firestore + Authentication)
-- Variáveis de ambiente configuradas
+- Node.js compatível com Vite 8 (Node.js 20.19+ ou 22.12+).
+- npm.
+- Firebase CLI disponível como `firebase` no terminal para executar os emuladores.
 
 ### Instalação
 
-1. **Clone o repositório**
-```bash
-git clone https://github.com/seu-usuario/manto-store.git
-cd manto-store
-```
-
-2. **Instale as dependências**
 ```bash
 npm install
-# ou
-yarn install
 ```
 
-3. **Configure as variáveis de ambiente**
-
-Crie um arquivo `.env.local` na raiz do projeto:
+Crie um arquivo `.env.local` na raiz com a configuração do projeto Firebase. Para desenvolvimento isolado, use o mesmo ID de projeto no cliente e nos emuladores:
 
 ```env
-VITE_FIREBASE_API_KEY=sua_api_key_aqui
-VITE_FIREBASE_AUTH_DOMAIN=seu_auth_domain
-VITE_FIREBASE_PROJECT_ID=seu_project_id
-VITE_FIREBASE_STORAGE_BUCKET=seu_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=seu_sender_id
-VITE_FIREBASE_APP_ID=seu_app_id
-VITE_FIREBASE_MEASUREMENT_ID=seu_measurement_id
+VITE_FIREBASE_API_KEY=chave-local
+VITE_FIREBASE_AUTH_DOMAIN=localhost
+VITE_FIREBASE_PROJECT_ID=manto-store-local
+VITE_FIREBASE_STORAGE_BUCKET=manto-store-local.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+VITE_FIREBASE_APP_ID=1:000000000000:web:local
+VITE_FIREBASE_MEASUREMENT_ID=
+VITE_USE_FIREBASE_EMULATOR=true
 ```
 
-Obtenha essas credenciais no [Firebase Console](https://console.firebase.google.com/)
+Quando `VITE_USE_FIREBASE_EMULATOR=true` em desenvolvimento, o serviço do cliente conecta Authentication em `127.0.0.1:9099` e Firestore em `127.0.0.1:8080`. Essas portas e os emuladores estão declarados em [firebase.json](./firebase.json).
 
-4. **Inicie o servidor de desenvolvimento**
+Em um terminal, inicie os emuladores:
+
+```bash
+firebase emulators:start --only auth,firestore --project manto-store-local
+```
+
+Em outro terminal, execute a aplicação:
+
 ```bash
 npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:5173`
+O servidor local do Vite informa a URL ao iniciar (por padrão, `http://localhost:5173`). Sem o emulador, configure as credenciais de um projeto Firebase apropriado e defina `VITE_USE_FIREBASE_EMULATOR` como `false` ou remova a variável.
 
----
+### Comandos principais
 
-## 📦 Scripts Disponíveis
+| Comando | Finalidade |
+| --- | --- |
+| `npm run dev` | Inicia a aplicação em modo de desenvolvimento com HMR. |
+| `npm run lint` | Executa o ESLint. |
+| `npm run test` | Executa a suíte Vitest uma vez. |
+| `npm run build` | Gera a versão de produção em `dist/`. |
+| `npm run preview` | Serve localmente o build de produção. |
 
-| Script | Descrição |
-|:---|:---|
-| `npm run dev` | Inicia servidor de desenvolvimento com HMR |
-| `npm run build` | Build otimizado para produção |
-| `npm run preview` | Visualiza build de produção localmente |
-| `npm run lint` | Executa ESLint para verificar código |
+## Estrutura do projeto
 
----
-
-## 🔐 Variáveis de Ambiente
-
-### Desenvolvimento
-```bash
-VITE_FIREBASE_*  # Credenciais Firebase
-NODE_ENV=development
+```text
+src/
+├── assets/             # Imagens e recursos estáticos importados
+├── components/         # UI reutilizável: layout, cartões, frete e navegação
+├── contexts/           # Estado e contexto de autenticação
+├── pages/              # Home, produto, carrinho, coleção, busca e conta
+├── services/           # Inicialização Firebase e conexão opcional aos emuladores
+├── styles/             # Estilos globais
+├── utils/              # Regras de oferta e distribuição de produtos
+├── App.jsx             # Rotas, lazy loading e composição da aplicação
+├── main.jsx            # Ponto de entrada React
+└── setupTests.js       # Configuração compartilhada dos testes
 ```
 
-### Produção
-- Variáveis configuradas no Vercel Dashboard
-- Build otimizado com minificação
-- Assets servidos de CDN
+## Recursos implementados
 
----
+- **Autenticação:** cadastro, login, recuperação de senha e contexto para acompanhar a sessão Firebase.
+- **Carrinho:** leitura em tempo real do carrinho do usuário, atualização de quantidade, remoção de itens e cálculo de subtotal e total.
+- **Cálculo de frete:** consulta de CEP pelo ViaCEP e estimativa de opções PAC/SEDEX com base em região, peso e dimensões dos itens.
+- **Busca de catálogo:** pesquisa por texto, com normalização de acentos e carregamento progressivo por cursores.
+- **Coleções e filtros:** navegação por país/time e consulta paginada das coleções.
+- **Home:** seções de produtos em carrossel e animação de entrada com respeito à preferência por movimento reduzido.
+- **Detalhes de produto:** galeria, seleção de tamanho e personalização quando disponível nos dados do produto.
 
-## 💡 Diferenciais Técnicos
+## Observações de escopo
 
-### ✅ Performance
-- **Lazy loading** de componentes
-- **Code splitting** automático (Vite)
-- **Asset optimization** (Imagens comprimidas)
-- **Caching** inteligente com Firebase
-
-### ✅ UX/UI
-- **Animações smooth** sem jank
-- **Loading states** definidos
-- **Toast notifications** para feedback
-- **Accordeões dinâmicos** para economia de espaço
-
-### ✅ Segurança
-- **Firebase Auth** para autenticação segura
-- **Validação** de entrada no cliente
-- **HTTPS** em produção
-- **Regras de segurança** no Firestore
-
-### ✅ Acessibilidade
-- **Semântica HTML** correta
-- **ARIA labels** nos elementos
-- **Contraste de cores** otimizado
-- **Navegação por teclado**
-
-### ✅ Organização de Código
-- **Estrutura modular** com componentes reutilizáveis
-- **Separação de responsabilidades** (Context, Utils, Services)
-- **Naming conventions** consistentes
-- **CSS-in-components** para isolamento
-
----
-
-## 🎯 Funcionalidades por Página
-
-### 🏠 Home
-- Banners e destaque de coleções
-- Carrossel de produtos featured
-- Múltiplas seções de catálogo
-- Filtros by team/collection
-- Lazy loading de imagens
-
-### 📦 Produto
-- Galeria interativa com zoom
-- Personalização (nome/número)
-- Calculadora de frete
-- Acordeões de informação
-- Carrossel de recomendações
-- Avaliações (preparado)
-
-### 🛒 Carrinho
-- Listagem de itens com imagens
-- Controle de quantidade
-- Cálculo automático de total
-- Integração com frete
-- Resumo de pedido
-
-### 🔍 Busca
-- Campo de busca avançado
-- Filtros por preço
-- Ordenação (preço, nome)
-- Resultados em grid
-
-### 👤 Perfil
-- Dados do usuário
-- Histórico de pedidos
-- Endereços salvos
-- Preferências de notificação
-
-### 🔑 Autenticação
-- Login com email/senha
-- Registro de novo usuário
-- Recuperação de senha
-- Validações em tempo real
-
----
-
-## 🔄 Melhorias Futuras
-
-### Curto Prazo
-- [ ] Sistema de avaliações (reviews com estrelas)
-- [ ] Wishlist / Favoritos
-- [ ] Cupons de desconto
-- [ ] Checkout completo (pagamento)
-
-### Médio Prazo
-- [ ] Integração com Stripe/PayPal
-- [ ] Sistema de recomendação IA
-- [ ] Notificações push
-- [ ] Social login (Google, GitHub)
-
-### Longo Prazo
-- [ ] App mobile nativo (React Native)
-- [ ] Painel administrativo
-- [ ] Analytics avançado
-- [ ] Programa de fidelidade
-- [ ] Sistema de afiliados
-
----
-
-## 📊 Estatísticas do Projeto
-
-| Métrica | Valor |
-|:---|:---:|
-| **Componentes** | 15+ |
-| **Páginas** | 8 |
-| **Linhas de Código** | 2000+ |
-| **Pacotes NPM** | 20+ |
-| **Tempo de Build** | ~1s |
-| **Tamanho do Bundle** | <500KB |
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Para contribuir:
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
----
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
----
-
-## 👨‍💻 Autor
-
-Desenvolvido com ❤️ como projeto de portfólio.
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230077B5.svg?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/seu-usuario)
-[![GitHub](https://img.shields.io/badge/GitHub-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/seu-usuario)
-
----
-
-## 📞 Suporte
-
-Encontrou um problema? Abra uma [issue](https://github.com/seu-usuario/manto-store/issues) no repositório.
-
----
-
-<div align="center">
-
-**[⬆ Voltar ao topo](#-manto-store)**
-
-Feito com ❤️ para a comunidade dev
-
-</div>
+O fluxo presente cobre navegação, catálogo, autenticação, carrinho e estimativa de frete. Não há integração de pagamento nem finalização transacional de pedidos descrita como fluxo completo neste README. Da mesma forma, o badge de PWA permanece explicitamente como não configurado.
